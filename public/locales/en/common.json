@@ -1,0 +1,16 @@
+{
+  "welcome": "Welcome",
+  "products": "Products",
+  "blog": "Blog",
+  "home": "Home",
+  "orders": "Orders",
+  "back_to_home": "Back to Home",
+  "loading": "Loading...",
+  "error": "Error",
+  "no_data": "No data available",
+  "read_more": "Read More",
+  "view_details": "View Details",
+  "featured": "Featured",
+  "price": "Price",
+  "category": "Category"
+} 

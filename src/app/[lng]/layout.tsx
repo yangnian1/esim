@@ -1,0 +1,49 @@
+import type { Metadata } from "next";
+// import { Inter } from 'next/font/google'
+import "../globals.css";
+import { languages } from '../../i18n/settings'
+import { Header } from "@/components/Header";
+import { Footer } from "@/components/Footer";
+
+// const inter = Inter({ subsets: ['latin'] })
+
+// 临时使用系统字体来避免网络问题
+// const geistSans = Geist({
+//   variable: "--font-geist-sans",
+//   subsets: ["latin"],
+// });
+
+// const geistMono = Geist_Mono({
+//   variable: "--font-geist-mono",
+//   subsets: ["latin"],
+// });
+
+export const metadata: Metadata = {
+  title: "eSIM Store",
+  description: "Buy eSIMs for your travels",
+};
+
+export async function generateStaticParams() {
+  return languages.map((lng) => ({ lng }))
+}
+
+export default async function RootLayout({
+  children,
+  params
+}: Readonly<{
+  children: React.ReactNode;
+  params: Promise<{
+    lng: string;
+  }>
+}>) {
+  const { lng } = await params
+  return (
+    <html lang={lng} dir="ltr">
+      <body className="antialiased font-sans">
+        <Header lng={lng} />
+        <main>{children}</main>
+        <Footer lng={lng} />
+      </body>
+    </html>
+  );
+}

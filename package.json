@@ -1,0 +1,47 @@
+{
+  "name": "website",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "dev:local": "cross-env NEXT_PUBLIC_STRAPI_URL=http://localhost:1337 next dev",
+    "dev:server": "cross-env NEXT_PUBLIC_STRAPI_URL=http://admin.esimconnects.com next dev",
+    "dev:debug": "cross-env NEXT_PUBLIC_NETWORK_LOGS=true NEXT_PUBLIC_VERBOSE_LOGS=true next dev",
+    "dev:local-debug": "cross-env NEXT_PUBLIC_STRAPI_URL=http://localhost:1337 NEXT_PUBLIC_NETWORK_LOGS=true NEXT_PUBLIC_VERBOSE_LOGS=true next dev",
+    "dev:server-debug": "cross-env NEXT_PUBLIC_STRAPI_URL=http://admin.esimconnects.com NEXT_PUBLIC_NETWORK_LOGS=true NEXT_PUBLIC_VERBOSE_LOGS=true next dev",
+    "build": "next build",
+    "build:local": "cross-env NEXT_PUBLIC_STRAPI_URL=http://localhost:1337 next build",
+    "build:server": "cross-env NEXT_PUBLIC_STRAPI_URL=http://admin.esimconnects.com next build",
+    "start": "next start",
+    "lint": "next lint",
+    "env:local": "echo 切换到本地环境... && echo NEXT_PUBLIC_STRAPI_URL=http://localhost:1337 > .env.local && echo PORT=3000 >> .env.local",
+    "env:server": "echo 切换到服务器环境... && echo NEXT_PUBLIC_STRAPI_URL=http://admin.esimconnects.com > .env.local && echo PORT=3000 >> .env.local",
+    "debug:enable": "echo 启用调试模式... && echo NEXT_PUBLIC_NETWORK_LOGS=true >> .env.local && echo NEXT_PUBLIC_VERBOSE_LOGS=true >> .env.local",
+    "debug:disable": "echo 禁用调试模式... && powershell -Command \"$content = Get-Content .env.local; $filtered = $content | Where-Object { $_ -notmatch 'NEXT_PUBLIC_.*_LOGS' }; $filtered | Out-File -FilePath .env.local -Encoding utf8\""
+  },
+  "dependencies": {
+    "accept-language": "^3.0.20",
+    "i18next": "^25.2.1",
+    "i18next-browser-languagedetector": "^8.2.0",
+    "i18next-resources-to-backend": "^1.2.1",
+    "lucide-react": "^0.518.0",
+    "next": "15.3.4",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "react-i18next": "^15.5.3",
+    "react-markdown": "^10.1.0",
+    "remark-gfm": "^4.0.1"
+  },
+  "devDependencies": {
+    "@eslint/eslintrc": "^3",
+    "@tailwindcss/postcss": "^4",
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "cross-env": "^7.0.3",
+    "eslint": "^9",
+    "eslint-config-next": "15.3.4",
+    "tailwindcss": "^4",
+    "typescript": "^5"
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "welcome": "欢迎",
+  "products": "产品",
+  "blog": "博客",
+  "home": "首页",
+  "orders": "订单",
+  "back_to_home": "返回首页",
+  "loading": "加载中...",
+  "error": "错误",
+  "no_data": "暂无数据",
+  "read_more": "阅读更多",
+  "view_details": "查看详情",
+  "featured": "特色",
+  "price": "价格",
+  "category": "分类"
+} 

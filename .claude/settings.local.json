@@ -1,0 +1,17 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm run dev:local-debug:*)",
+      "Bash(pkill:*)",
+      "Bash(true)",
+      "Bash(ls:*)",
+      "Bash(mv:*)",
+      "Bash(npm run lint)",
+      "Bash(npm run build:*)",
+      "Bash(npm install:*)",
+      "Bash(npm run dev:local:*)"
+    ],
+    "deny": [],
+    "defaultMode": "acceptEdits"
+  }
+}

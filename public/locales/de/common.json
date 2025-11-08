@@ -1,0 +1,16 @@
+{
+  "welcome": "Willkommen",
+  "products": "Produkte",
+  "blog": "Blog",
+  "home": "Startseite",
+  "orders": "Bestellungen",
+  "back_to_home": "Zurück zur Startseite",
+  "loading": "Laden...",
+  "error": "Fehler",
+  "no_data": "Keine Daten verfügbar",
+  "read_more": "Mehr lesen",
+  "view_details": "Details anzeigen",
+  "featured": "Empfohlen",
+  "price": "Preis",
+  "category": "Kategorie"
+} 

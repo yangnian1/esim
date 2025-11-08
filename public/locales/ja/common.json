@@ -1,0 +1,16 @@
+{
+  "welcome": "ようこそ",
+  "products": "製品",
+  "blog": "ブログ",
+  "home": "ホーム",
+  "orders": "注文",
+  "back_to_home": "ホームに戻る",
+  "loading": "読み込み中...",
+  "error": "エラー",
+  "no_data": "データがありません",
+  "read_more": "続きを読む",
+  "view_details": "詳細を見る",
+  "featured": "おすすめ",
+  "price": "価格",
+  "category": "カテゴリー"
+} 

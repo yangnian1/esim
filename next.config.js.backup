@@ -1,0 +1,66 @@
+/** @type {import('next').NextConfig} */
+const nextConfig = {
+  // 移除静态导出配置，启用SSR模式
+  // output: 'export',  // 注释掉这行
+  
+  trailingSlash: true,
+  
+  // 为SSR模式优化图片配置
+  images: {
+    // 使用新的 remotePatterns 配置替代已弃用的 domains
+    remotePatterns: [
+      // 本地开发环境 - localhost
+      {
+        protocol: 'http',
+        hostname: 'localhost',
+        port: '1337',
+        pathname: '/uploads/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'localhost',
+        port: '1337',
+        pathname: '/uploads/**',
+      },
+      // 生产环境 - admin.esimconnects.com
+      {
+        protocol: 'http',
+        hostname: 'admin.esimconnects.com',
+        port: '',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'admin.esimconnects.com',
+        port: '',
+        pathname: '/**',
+      },
+      // 外部图片资源
+      {
+        protocol: 'https',
+        hostname: 'flagcdn.com',
+        port: '',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'hatscripts.github.io',
+        port: '',
+        pathname: '/circle-flags/**',
+      }
+    ],
+    unoptimized: false, // 启用图片优化
+  },
+  
+  // 添加SSR优化配置
+  experimental: {
+    optimizePackageImports: ['lucide-react'], // 优化图标包导入
+  },
+  
+  // 环境变量配置
+  env: {
+    CUSTOM_KEY: process.env.CUSTOM_KEY,
+  }
+}
+
+module.exports = nextConfig 
