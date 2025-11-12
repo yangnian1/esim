@@ -6,26 +6,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ### Development Commands
 ```bash
-# Development with different API endpoints
-npm run dev:local          # Connect to local API (localhost:1337)
-npm run dev:server         # Connect to server API (admin.esimconnects.com)
-npm run dev:debug          # Enable debug mode with verbose logging
-npm run dev:local-debug    # Local API + debug mode
-npm run dev:server-debug   # Server API + debug mode
-
-# Environment switching
-npm run env:local          # Switch to local environment
-npm run env:server         # Switch to server environment
-npm run debug:enable       # Enable debug logging
-npm run debug:disable      # Disable debug logging
-
-# Build commands
-npm run build              # Standard build
-npm run build:local        # Build for local environment
-npm run build:server       # Build for server environment
-
-# Other commands
-npm run dev                # Standard development (no API override)
+npm run dev                # Standard development server
+npm run build              # Production build
 npm run start              # Start production server
 npm run lint               # Run ESLint
 ```
@@ -45,55 +27,57 @@ This is a Next.js 15 application with internationalization (i18n) support using 
 - **Tailwind CSS 4**
 - **React 19**
 - **i18next** for internationalization
-- **Strapi CMS** as backend (configurable endpoint)
 
 ### Internationalization
 - Supported languages: English (en), Chinese (zh), French (fr), German (de), Spanish (es), Japanese (ja)
-- Language detection via middleware using `accept-language`
+- Language detection via middleware using `accept-language` package
 - Fallback language: English (en)
 - Language cookie: `i18next`
 - Route structure: `/{language}/{page}`
-
-### API Configuration
-- **Backend**: Strapi CMS
-- **Local API**: `http://localhost:1337`
-- **Production API**: `http://admin.esimconnects.com`
-- **Environment switching**: Use `NEXT_PUBLIC_STRAPI_URL` environment variable
-- **Debug logging**: Controlled by `NEXT_PUBLIC_NETWORK_LOGS` and `NEXT_PUBLIC_VERBOSE_LOGS`
+- Translation files located in: `public/locales/{language}/common.json`
+- Configuration: `src/i18n/settings.ts` (languages array and fallback settings)
+- Middleware automatically redirects requests without language prefix to `/{detected_language}{pathname}`
+- Path alias `@/*` maps to `src/*` (configured in [tsconfig.json:22-24](tsconfig.json#L22-L24))
 
 ### Key Files and Directories
 - `src/app/[lng]/` - App Router with language parameters
 - `src/middleware.ts` - Language detection and routing
 - `src/i18n/` - i18n configuration and settings
-- `src/lib/api.ts` - Strapi API client with products and articles endpoints
-- `src/lib/config.ts` - API configuration and debug logging
+- `src/lib/mock-data.ts` - Mock data and utility functions
 - `src/types/index.ts` - TypeScript type definitions
 - `src/components/` - React components
 - `public/locales/` - Translation files (JSON format)
 
-### API Integration
-The application connects to a Strapi CMS backend with these main endpoints:
-- **Products API**: `/api/products` - Product catalog with featured items
-- **Articles API**: `/api/articles/language/{locale}` - Localized blog articles
-- **Article Detail API**: `/api/articles/group/{article_group_id}/language/{locale}` - Individual article by group ID and language
-- **Image handling**: Support for Strapi uploads and external images (flagcdn.com)
-
-### Article System
-- Articles use `article_group_id` for routing instead of numeric IDs
-- Article detail URLs: `/{language}/blog/{article_group_id}`
-- New API endpoint: `GET /api/articles/group/{article_group_id}/language/{locale}?populate=*`
+### Data Management
+Currently, the application uses static content and mock data:
+- Mock data defined in `src/lib/mock-data.ts`
+- Utility functions for formatting prices, dates, and image URLs
+- No external API or CMS integration
 
 ### Development Environment
 - **SSR Mode**: Server-side rendering enabled (static export disabled)
-- **Image optimization**: Configured for multiple domains including Strapi uploads
-- **Environment variables**: Used for API URL switching and debug settings
-- **Debugging**: Comprehensive logging system with Network panel simulation
+- **Image optimization**: Configured for external images (flagcdn.com)
+- **Static translations**: Translations embedded directly in page components
 
 ### Pages Structure
-- `/` - Homepage with featured products and latest articles
-- `/products` - Product catalog
-- `/blog` - Blog articles
-- `/blog/[id]` - Individual blog post
-- `/orders` - Order management
+All pages are under `src/app/[lng]/` with language parameter:
+- `/{lng}/` - Homepage with hero section and navigation
+- `/{lng}/products` - Product catalog placeholder page
+- `/{lng}/blog` - Blog articles placeholder page
+- `/{lng}/blog/[id]` - Individual blog post placeholder page
+- `/{lng}/orders` - Order management page
 
-The app uses server-side rendering with fallback data for offline/error scenarios.
+### Type Definitions
+All TypeScript types are defined in `src/types/index.ts`:
+- `Product` - Product catalog items with pricing, SKU, countries, validity, images
+- `Article` - Blog articles with localized titles/excerpts
+- `Category` - Product categories with hierarchical structure
+- `ApiResponse<T>` - Generic API response wrapper type
+
+### Next Steps
+The application is currently set up as a foundation for adding a backend data source. When implementing a new backend:
+1. Create new API client in `src/lib/` directory
+2. Update page components to fetch real data
+3. Remove or replace mock data in `src/lib/mock-data.ts`
+4. Update environment variables as needed
+5. Configure image domains in [next.config.ts](next.config.ts) if using remote images

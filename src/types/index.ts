@@ -4,9 +4,6 @@ export interface Product {
   name: string
   title: string
   description?: string
-  description_zh?: string
-  display_name?: string
-  display_name_zh?: string
   short_description: string
   price?: number
   original_price: number
@@ -29,14 +26,12 @@ export interface Product {
   image?: {
     url: string
     alt?: string
-    alternativeText: string
   }
   availability?: boolean
   rating?: number
   reviews_count?: number
   created_at?: string
   updated_at?: string
-  publishedAt: string
   locale: string
 }
 
@@ -44,25 +39,19 @@ export interface Product {
 export interface Article {
   id: number
   title: string
-  title_zh?: string
   content: string
   excerpt?: string
-  excerpt_zh?: string
   slug: string
-  article_group_id: string  // 新增：文章组ID
   author?: string
   category?: string
   category_id?: number
   tags?: string[]
   featured_image?: {
     url: string
-    alternativeText: string
+    alt?: string
   }
-  createdAt: string
-  created_at?: string
-  updatedAt: string
-  publishedAt: string
-  published_at?: string
+  created_at: string
+  updated_at: string
   locale: string
 }
 
@@ -81,19 +70,6 @@ export interface Category {
   products?: Product[]
   attributes?: {
     product_count: number
-  }
-}
-
-// API响应类型
-export interface StrapiResponse<T> {
-  data: T
-  meta?: {
-    pagination?: {
-      page: number
-      pageSize: number
-      pageCount: number
-      total: number
-    }
   }
 }
 
