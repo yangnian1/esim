@@ -27,6 +27,7 @@ This is a Next.js 15 application with internationalization (i18n) support using 
 - **Tailwind CSS 4**
 - **React 19**
 - **i18next** for internationalization
+- **react-markdown** with remark-gfm for markdown rendering
 
 ### Internationalization
 - Supported languages: English (en), Chinese (zh), French (fr), German (de), Spanish (es), Japanese (ja)
@@ -35,22 +36,22 @@ This is a Next.js 15 application with internationalization (i18n) support using 
 - Language cookie: `i18next`
 - Route structure: `/{language}/{page}`
 - Translation files located in: `public/locales/{language}/common.json`
-- Configuration: `src/i18n/settings.ts` (languages array and fallback settings)
+- Configuration: [src/i18n/settings.ts](src/i18n/settings.ts) (languages array and fallback settings)
 - Middleware automatically redirects requests without language prefix to `/{detected_language}{pathname}`
 - Path alias `@/*` maps to `src/*` (configured in [tsconfig.json:22-24](tsconfig.json#L22-L24))
 
 ### Key Files and Directories
-- `src/app/[lng]/` - App Router with language parameters
-- `src/middleware.ts` - Language detection and routing
-- `src/i18n/` - i18n configuration and settings
-- `src/lib/mock-data.ts` - Mock data and utility functions
-- `src/types/index.ts` - TypeScript type definitions
-- `src/components/` - React components
-- `public/locales/` - Translation files (JSON format)
+- [src/app/\[lng\]/](src/app/[lng]/) - App Router with language parameters
+- [src/middleware.ts](src/middleware.ts) - Language detection and routing
+- [src/i18n/](src/i18n/) - i18n configuration and settings
+- [src/lib/mock-data.ts](src/lib/mock-data.ts) - Mock data and utility functions
+- [src/types/index.ts](src/types/index.ts) - TypeScript type definitions
+- [src/components/](src/components/) - React components
+- [public/locales/](public/locales/) - Translation files (JSON format)
 
 ### Data Management
 Currently, the application uses static content and mock data:
-- Mock data defined in `src/lib/mock-data.ts`
+- Mock data defined in [src/lib/mock-data.ts](src/lib/mock-data.ts)
 - Utility functions for formatting prices, dates, and image URLs
 - No external API or CMS integration
 
@@ -68,7 +69,7 @@ All pages are under `src/app/[lng]/` with language parameter:
 - `/{lng}/orders` - Order management page
 
 ### Type Definitions
-All TypeScript types are defined in `src/types/index.ts`:
+All TypeScript types are defined in [src/types/index.ts](src/types/index.ts):
 - `Product` - Product catalog items with pricing, SKU, countries, validity, images
 - `Article` - Blog articles with localized titles/excerpts
 - `Category` - Product categories with hierarchical structure

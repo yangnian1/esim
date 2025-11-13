@@ -2,9 +2,8 @@
 
 import Image from 'next/image'
 import Link from 'next/link'
-import { apiUtils } from '@/lib/api'
 import { Product } from '@/types'
-import { getImageUrl } from '@/lib/config'
+import { getImageUrl, formatPrice } from '@/lib/mock-data'
 
 interface ProductCardProps {
   product: Product
@@ -104,7 +103,7 @@ export const ProductCard = ({ product, lng }: ProductCardProps) => {
             {price !== null && (
               <div className="flex items-center">
                 <p className="text-xl font-bold text-blue-600">
-                  {apiUtils.formatPrice(price, product.currency || (lng === 'zh' ? 'CNY' : 'USD'))}
+                  {formatPrice(price, product.currency || (lng === 'zh' ? 'CNY' : 'USD'))}
                 </p>
                 {/* 显示货币 */}
                 {product.currency && (

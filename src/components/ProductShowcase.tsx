@@ -1,7 +1,7 @@
 // 服务端渲染版本 - 完全移除客户端逻辑
 import Link from 'next/link'
 import Image from 'next/image'
-import { apiUtils } from '@/lib/api'
+import { getImageUrl, formatPrice } from '@/lib/mock-data'
 import { Product, Category } from '@/types'
 import { MapPin, Map, Globe } from 'lucide-react'
 
@@ -92,7 +92,7 @@ export function ProductShowcase({
     >
       <div className="relative w-full h-48">
         <Image
-          src={product.image?.url ? apiUtils.getImageUrl(product.image.url) : '/placeholder.png'}
+          src={product.image?.url ? getImageUrl(product.image.url) : '/placeholder.png'}
           alt={product.image?.alternativeText || product.name || product.title || ''}
           fill
           style={{ objectFit: 'cover' }}
@@ -121,7 +121,7 @@ export function ProductShowcase({
           <div className="flex flex-col">
             {(product.price || product.original_price) && (
               <p className="text-xl font-bold text-blue-600">
-                {apiUtils.formatPrice(product.price || product.original_price, product.currency || 'CNY')}
+                {formatPrice(product.price || product.original_price, product.currency || 'CNY')}
               </p>
             )}
           </div>

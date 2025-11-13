@@ -4,7 +4,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { useState } from 'react'
 import { Article } from '@/types'
-import { apiUtils } from '@/lib/api'
+import { getImageUrl, formatDate } from '@/lib/mock-data'
 import { LoadingOverlay } from './ui/LoadingOverlay'
 
 interface ArticleListProps {
@@ -39,15 +39,15 @@ export function ArticleList({ articles, lng }: ArticleListProps) {
           
           return (
             <article key={article.id} className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow">
-              <Link 
-                href={`/${lng}/blog/${article.article_group_id}`} 
+              <Link
+                href={`/${lng}/blog/${article.id}`}
                 className="block"
-                onClick={() => handleArticleClick(article.article_group_id)}
+                onClick={() => handleArticleClick(article.id.toString())}
               >
                 {article.featured_image?.url && (
                   <div className="relative h-48">
                     <Image
-                      src={apiUtils.getImageUrl(article.featured_image.url)}
+                      src={getImageUrl(article.featured_image.url)}
                       alt={article.featured_image.alternativeText || article.title}
                       fill
                       className="object-cover"
@@ -64,7 +64,7 @@ export function ArticleList({ articles, lng }: ArticleListProps) {
                   </p>
                   <div className="flex items-center justify-between text-sm text-gray-500">
                     <span>By {article.author || 'Admin'}</span>
-                    <span>{apiUtils.formatDate(article.createdAt, lng === 'zh' ? 'zh-CN' : 'en-US')}</span>
+                    <span>{formatDate(article.createdAt || article.created_at, lng === 'zh' ? 'zh-CN' : 'en-US')}</span>
                   </div>
                 </div>
               </Link>

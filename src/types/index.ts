@@ -26,6 +26,7 @@ export interface Product {
   image?: {
     url: string
     alt?: string
+    alternativeText?: string
   }
   availability?: boolean
   rating?: number
@@ -33,6 +34,10 @@ export interface Product {
   created_at?: string
   updated_at?: string
   locale: string
+  // Support multilingual fields
+  display_name?: string
+  display_name_zh?: string
+  description_zh?: string
 }
 
 // 文章相关类型
@@ -49,10 +54,19 @@ export interface Article {
   featured_image?: {
     url: string
     alt?: string
+    alternativeText?: string
   }
   created_at: string
   updated_at: string
   locale: string
+  // Support camelCase variants for compatibility
+  createdAt?: string
+  updatedAt?: string
+  published_at?: string
+  publishedAt?: string
+  // Support multilingual fields
+  title_zh?: string
+  excerpt_zh?: string
 }
 
 // 分类相关类型

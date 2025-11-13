@@ -10,7 +10,8 @@
       "Bash(npm run build:*)",
       "Bash(npm install:*)",
       "Bash(npm run dev:local:*)",
-      "Bash(cat:*)"
+      "Bash(cat:*)",
+      "Bash(test:*)"
     ],
     "deny": [],
     "defaultMode": "acceptEdits"

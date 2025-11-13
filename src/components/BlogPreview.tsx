@@ -4,7 +4,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { useState } from 'react'
 import { Article } from '@/types'
-import { apiUtils } from '@/lib/api'
+import { getImageUrl, formatDate } from '@/lib/mock-data'
 import { LoadingOverlay } from './ui/LoadingOverlay'
 
 interface BlogPreviewProps {
@@ -50,7 +50,7 @@ export function BlogPreview({ articles, lng }: BlogPreviewProps) {
                 <div key={article.id} className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow">
                   {article.featured_image && (
                     <Image
-                      src={apiUtils.getImageUrl(article.featured_image.url)}
+                      src={getImageUrl(article.featured_image.url)}
                       alt={article.featured_image.alternativeText || article.title}
                       width={400}
                       height={250}
@@ -68,11 +68,11 @@ export function BlogPreview({ articles, lng }: BlogPreviewProps) {
                       </p>
                     )}
                     <div className="flex justify-between items-center text-sm text-gray-500">
-                      <span>{apiUtils.formatDate(article.createdAt, lng === 'zh' ? 'zh-CN' : 'en-US')}</span>
+                      <span>{formatDate(article.createdAt || article.created_at, lng === 'zh' ? 'zh-CN' : 'en-US')}</span>
                       <Link
-                        href={`/${lng}/blog/${article.article_group_id}`}
+                        href={`/${lng}/blog/${article.id}`}
                         className="text-blue-600 hover:text-blue-800 transition-colors"
-                        onClick={() => handleArticleClick(article.article_group_id)}
+                        onClick={() => handleArticleClick(article.id.toString())}
                       >
                         {lng === 'zh' ? '阅读更多' : 'Read More'}
                       </Link>

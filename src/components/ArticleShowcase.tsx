@@ -145,7 +145,7 @@ export function ArticleShowcase({
                   {/* 元信息 */}
                   <div className="flex items-center text-sm text-gray-500 mb-3">
                     <CalendarIcon className="h-4 w-4 mr-1" />
-                    <span className="mr-4">{formatDate(article.published_at || article.publishedAt || article.created_at || article.createdAt, lng)}</span>
+                    <span className="mr-4">{formatDate(article.published_at || article.publishedAt || article.created_at || article.createdAt || new Date().toISOString(), lng)}</span>
                     {article.author && (
                       <>
                         <UserIcon className="h-4 w-4 mr-1" />
