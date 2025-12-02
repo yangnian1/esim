@@ -11,7 +11,8 @@
       "Bash(npm install:*)",
       "Bash(npm run dev:local:*)",
       "Bash(cat:*)",
-      "Bash(test:*)"
+      "Bash(test:*)",
+      "Bash(rm:*)"
     ],
     "deny": [],
     "defaultMode": "acceptEdits"

@@ -1,4 +1,4 @@
-// 模拟数据文件 - 替代 Strapi API
+// 模拟数据文件
 import { Product, Article } from '@/types'
 
 // 模拟产品数据

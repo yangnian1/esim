@@ -18,9 +18,14 @@ interface ArticleShowcaseProps {
 // 获取文章缩略图
 const getArticleThumbnail = (article: Article): string => {
   if (article.featured_image?.url) {
-    return article.featured_image.url.startsWith('http') 
-      ? article.featured_image.url 
-      : `${process.env.NEXT_PUBLIC_API_URL}${article.featured_image.url}`
+    // 如果是完整的 HTTP URL，直接返回
+    if (article.featured_image.url.startsWith('http')) {
+      return article.featured_image.url
+    }
+    // 如果是相对路径，确保以 / 开头
+    return article.featured_image.url.startsWith('/')
+      ? article.featured_image.url
+      : `/${article.featured_image.url}`
   }
   return 'https://via.placeholder.com/400x250?text=Article'
 }

@@ -14,9 +14,14 @@ interface ProductModalProps {
 // 获取产品图片URL
 const getProductImageUrl = (product: Product): string => {
   if (product.image?.url) {
-    return product.image.url.startsWith('http') 
-      ? product.image.url 
-      : `${process.env.NEXT_PUBLIC_API_URL}${product.image.url}`
+    // 如果是完整的 HTTP URL，直接返回
+    if (product.image.url.startsWith('http')) {
+      return product.image.url
+    }
+    // 如果是相对路径，确保以 / 开头
+    return product.image.url.startsWith('/')
+      ? product.image.url
+      : `/${product.image.url}`
   }
   return 'https://via.placeholder.com/300x200?text=eSIM'
 }
