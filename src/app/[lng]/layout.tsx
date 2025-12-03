@@ -4,6 +4,7 @@ import "../globals.css";
 import { languages } from '../../i18n/settings'
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
+import { AuthProvider } from "@/contexts/AuthContext";
 
 // const inter = Inter({ subsets: ['latin'] })
 
@@ -19,8 +20,12 @@ import { Footer } from "@/components/Footer";
 // });
 
 export const metadata: Metadata = {
-  title: "eSIM Store",
-  description: "Buy eSIMs for your travels",
+  title: "eSIM Store - Global Travel eSIM Solutions",
+  description: "Buy eSIMs for your travels worldwide. Stay connected with affordable data plans for over 200 countries.",
+  icons: {
+    icon: '/favicon.ico',
+    apple: '/icon.png',
+  },
 };
 
 export async function generateStaticParams() {
@@ -40,9 +45,11 @@ export default async function RootLayout({
   return (
     <html lang={lng} dir="ltr">
       <body className="antialiased font-sans">
-        <Header lng={lng} />
-        <main>{children}</main>
-        <Footer lng={lng} />
+        <AuthProvider>
+          <Header lng={lng} />
+          <main>{children}</main>
+          <Footer lng={lng} />
+        </AuthProvider>
       </body>
     </html>
   );

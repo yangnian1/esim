@@ -89,6 +89,32 @@ export interface Database {
           seo_meta?: Json
         }
       }
+      profiles: {
+        Row: {
+          id: string // UUID
+          username: string
+          role: 'user' | 'admin'
+          avatar_url: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id: string
+          username: string
+          role?: 'user' | 'admin'
+          avatar_url?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          username?: string
+          role?: 'user' | 'admin'
+          avatar_url?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+      }
     }
     Views: {
       [_ in never]: never
@@ -130,3 +156,6 @@ export interface LocalizedBlogPost {
   seo_title: string | null
   seo_description: string | null
 }
+
+// 用户 Profile 类型
+export type Profile = Database['public']['Tables']['profiles']['Row']

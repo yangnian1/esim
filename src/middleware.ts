@@ -6,7 +6,8 @@ acceptLanguage.languages(languages)
 
 export const config = {
   // matcher: '/:lng*'
-  matcher: ['/((?!api|_next/static|_next/image|assets|favicon.ico|sw.js).*)']
+  // 排除静态资源：API路由、Next.js内部文件、图片文件等
+  matcher: ['/((?!api|_next/static|_next/image|assets|favicon.ico|sw.js|.+\\.(?:png|jpg|jpeg|gif|svg|ico|webp)$).*)']
 }
 
 export function middleware(req: NextRequest) {

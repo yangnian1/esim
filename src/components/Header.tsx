@@ -5,6 +5,7 @@ import Image from 'next/image'
 import { useState } from 'react'
 import { languages } from '@/i18n/settings'
 import { usePathname } from 'next/navigation'
+import { UserMenu } from './UserMenu'
 
 // 语言到国旗和名称的映射
 const languageConfig: Record<string, { flag: string; name: string; nameEn: string }> = {
@@ -111,17 +112,25 @@ export function Header({ lng }: HeaderProps) {
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           <div className="flex-shrink-0">
-            <Link href={`/${lng}`} className="text-2xl font-bold text-gray-800">
-              eSIM Store
+            <Link href={`/${lng}`} className="flex items-center gap-3">
+              <Image
+                src="/logo.png"
+                alt="eSIM Store Logo"
+                width={40}
+                height={40}
+                className="object-contain"
+                priority
+              />
+              <span className="text-2xl font-bold text-gray-800">eSIM Store</span>
             </Link>
           </div>
           
           {/* 桌面导航 */}
           <nav className="hidden md:flex items-center space-x-8">
             {navLinks.map((link) => (
-              <Link 
-                key={link.href} 
-                href={link.href} 
+              <Link
+                key={link.href}
+                href={link.href}
                 className={`text-gray-600 hover:text-gray-900 transition-colors ${
                   pathname === link.href ? 'font-semibold text-gray-900' : ''
                 }`}
@@ -129,7 +138,10 @@ export function Header({ lng }: HeaderProps) {
                 {link.label}
               </Link>
             ))}
-            
+
+            {/* 用户菜单 */}
+            <UserMenu lng={lng} />
+
             {/* 语言切换 - 客户端交互版本 */}
             <div className="relative">
               <button
@@ -182,7 +194,8 @@ export function Header({ lng }: HeaderProps) {
           </nav>
           
           {/* 移动端导航 */}
-          <div className="md:hidden">
+          <div className="md:hidden flex items-center gap-2">
+            <UserMenu lng={lng} />
             <button
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
               className="flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100"
@@ -191,7 +204,7 @@ export function Header({ lng }: HeaderProps) {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
               </svg>
             </button>
-            
+
             {isMobileMenuOpen && (
               <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-md shadow-lg py-1 border border-gray-200 z-50">
                 {navLinks.map((link) => (
