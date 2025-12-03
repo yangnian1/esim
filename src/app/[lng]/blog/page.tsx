@@ -173,22 +173,10 @@ function BlogLoading({ lng }: { lng: string }) {
 // 主页面组件
 export default async function BlogPage({ params }: { params: Promise<{ lng: string }> }) {
   const { lng } = await params
-  const t = (key: string) => translations[lng]?.[key] || translations['en']?.[key] || key
 
   return (
     <main className="min-h-screen bg-gray-50">
       <div className="container mx-auto px-4 py-12">
-        {/* 页面标题 */}
-        <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold text-gray-900 mb-4">{t('blog')}</h1>
-          <Link
-            href={`/${lng}`}
-            className="inline-flex items-center text-purple-600 hover:text-purple-800 transition-colors"
-          >
-            ← {t('back_to_home')}
-          </Link>
-        </div>
-
         {/* 博客文章列表 */}
         <Suspense fallback={<BlogLoading lng={lng} />}>
           <BlogPostsList lng={lng} />
