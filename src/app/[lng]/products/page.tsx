@@ -62,6 +62,11 @@ const translations: Record<string, Record<string, string>> = {
 async function ProductsList({ lng }: { lng: string }) {
   const t = (key: string) => translations[lng]?.[key] || translations['en']?.[key] || key
 
+  // 记录页面生成时间（用于验证 ISR）
+  const buildTime = new Date().toISOString()
+  console.log(`[Products Page] Generated at: ${buildTime} (locale: ${lng})`)
+  console.log(`v1.0.0`)
+
   // 从 Supabase 获取产品数据
   const { data: products, error } = await getProducts({
     locale: lng,
@@ -86,8 +91,14 @@ async function ProductsList({ lng }: { lng: string }) {
   }
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-      {products.map((product) => (
+    <>
+      {/* ISR 验证：页面生成时间 */}
+      <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded text-sm text-blue-800">
+        <strong>🕐 Page Generated:</strong> {buildTime} | <strong>Locale:</strong> {lng}
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {products.map((product) => (
         <div
           key={product.id}
           className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow"
@@ -148,8 +159,9 @@ async function ProductsList({ lng }: { lng: string }) {
             </div>
           </div>
         </div>
-      ))}
-    </div>
+        ))}
+      </div>
+    </>
   )
 }
 

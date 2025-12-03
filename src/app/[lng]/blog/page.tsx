@@ -66,6 +66,10 @@ function formatDate(dateString: string, locale: string): string {
 async function BlogPostsList({ lng }: { lng: string }) {
   const t = (key: string) => translations[lng]?.[key] || translations['en']?.[key] || key
 
+  // 记录页面生成时间（用于验证 ISR）
+  const buildTime = new Date().toISOString()
+  console.log(`[Blog Page] Generated at: ${buildTime} (locale: ${lng})`)
+
   // 从 Supabase 获取博客数据
   const { data: posts, error } = await getBlogPosts({
     locale: lng,
@@ -90,8 +94,14 @@ async function BlogPostsList({ lng }: { lng: string }) {
   }
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-      {posts.map((post) => (
+    <>
+      {/* ISR 验证：页面生成时间 */}
+      <div className="mb-4 p-3 bg-purple-50 border border-purple-200 rounded text-sm text-purple-800">
+        <strong>🕐 Page Generated:</strong> {buildTime} | <strong>Locale:</strong> {lng}
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        {posts.map((post) => (
         <article
           key={post.id}
           className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow flex flex-col"
@@ -142,8 +152,9 @@ async function BlogPostsList({ lng }: { lng: string }) {
             </div>
           </div>
         </article>
-      ))}
-    </div>
+        ))}
+      </div>
+    </>
   )
 }
 
