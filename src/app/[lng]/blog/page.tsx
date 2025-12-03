@@ -196,3 +196,6 @@ export async function generateStaticParams() {
     { lng: 'zh' },
   ]
 }
+
+// ISR: 每小时重新验证一次数据（3600秒）
+export const revalidate = 3600
