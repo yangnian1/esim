@@ -54,20 +54,20 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   }
 
   // 动态获取产品页面（仅使用第一个语言以避免重复）
-  const { data: products } = await getProducts(languages[0])
+  const { data: products } = await getProducts({ locale: languages[0] })
   const productPages: MetadataRoute.Sitemap = []
 
   if (products && products.length > 0) {
     for (const product of products) {
       for (const lng of languages) {
         productPages.push({
-          url: `${baseUrl}/${lng}/products/${product.slug}`,
+          url: `${baseUrl}/${lng}/products/${product.id}`,
           lastModified: new Date(product.updated_at),
           changeFrequency: 'weekly',
           priority: 0.8,
           alternates: {
             languages: Object.fromEntries(
-              languages.map(lang => [lang, `${baseUrl}/${lang}/products/${product.slug}`])
+              languages.map(lang => [lang, `${baseUrl}/${lang}/products/${product.id}`])
             ),
           },
         })
@@ -76,7 +76,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   }
 
   // 动态获取博客文章页面
-  const { data: posts } = await getBlogPosts(languages[0])
+  const { data: posts } = await getBlogPosts({ locale: languages[0] })
   const blogPages: MetadataRoute.Sitemap = []
 
   if (posts && posts.length > 0) {
