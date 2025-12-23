@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { signIn } from '@/lib/auth-service'
@@ -57,9 +57,17 @@ export default function LoginPage({ params }: { params: Promise<{ lng: string }>
   const router = useRouter()
 
   // 使用 useEffect 解析 params
-  useState(() => {
-    params.then(p => setLng(p.lng))
-  })
+  useEffect(() => {
+    let isMounted = true
+    params.then(p => {
+      if (isMounted) {
+        setLng(p.lng)
+      }
+    })
+    return () => {
+      isMounted = false
+    }
+  }, [params])
 
   const t = (key: string) => translations[lng]?.[key] || translations['en']?.[key] || key
 
