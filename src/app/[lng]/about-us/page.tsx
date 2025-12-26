@@ -227,16 +227,6 @@ export default function AboutUsPage({ params }: { params: Promise<{ lng: string 
   return (
     <main className="min-h-screen bg-gray-50">
       <div className="container mx-auto px-4 py-12">
-        {/* 返回首页链接 */}
-        <div className="mb-8">
-          <Link
-            href={`/${lng}`}
-            className="inline-flex items-center text-blue-600 hover:text-blue-800 transition-colors"
-          >
-            ← {t('back_to_home')}
-          </Link>
-        </div>
-
         {/* 标题和介绍 */}
         <section className="bg-white rounded-lg shadow-md p-8 mb-12">
           <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">

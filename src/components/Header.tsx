@@ -23,37 +23,43 @@ const translations: Record<string, Record<string, string>> = {
     home: 'Home',
     orders: 'Orders',
     blog: 'Blog',
-    about: 'About Us'
+    about: 'About Us',
+    contact: 'Contact Us'
   },
   zh: {
     home: '首页',
     orders: '订单',
     blog: '博客',
-    about: '关于我们'
+    about: '关于我们',
+    contact: '联系我们'
   },
   fr: {
     home: 'Accueil',
     orders: 'Commandes',
     blog: 'Blog',
-    about: 'À Propos'
+    about: 'À Propos',
+    contact: 'Contactez-nous'
   },
   de: {
     home: 'Startseite',
     orders: 'Bestellungen',
     blog: 'Blog',
-    about: 'Über Uns'
+    about: 'Über Uns',
+    contact: 'Kontakt'
   },
   es: {
     home: 'Inicio',
     orders: 'Pedidos',
     blog: 'Blog',
-    about: 'Acerca de'
+    about: 'Acerca de',
+    contact: 'Contáctanos'
   },
   ja: {
     home: 'ホーム',
     orders: '注文',
     blog: 'ブログ',
-    about: '私たちについて'
+    about: '私たちについて',
+    contact: 'お問い合わせ'
   }
 }
 
@@ -73,6 +79,7 @@ export function Header({ lng }: HeaderProps) {
     { href: `/${lng}/orders`, label: t('orders') },
     { href: `/${lng}/blog`, label: t('blog') },
     { href: `/${lng}/about-us`, label: t('about') },
+    { href: `/${lng}/contact-us`, label: t('contact') },
   ]
 
   // 修复：正确处理语言切换的路径重定向
