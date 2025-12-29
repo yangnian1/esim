@@ -19,6 +19,7 @@ export interface Database {
           stock: number
           country: string | null
           validity_days: number | null
+          image_url: string | null
           created_at: string
           updated_at: string
         }
@@ -30,6 +31,7 @@ export interface Database {
           stock?: number
           country?: string | null
           validity_days?: number | null
+          image_url?: string | null
           created_at?: string
           updated_at?: string
         }
@@ -41,6 +43,7 @@ export interface Database {
           stock?: number
           country?: string | null
           validity_days?: number | null
+          image_url?: string | null
           created_at?: string
           updated_at?: string
         }
@@ -137,6 +140,7 @@ export interface LocalizedProduct {
   stock: number
   country: string | null
   validity_days: number | null
+  image_url: string | null
   created_at: string
   updated_at: string
 }

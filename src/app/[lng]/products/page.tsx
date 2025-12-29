@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { getProducts } from '@/lib/supabase-services'
 import { Suspense } from 'react'
+import { ProductImage } from '@/components/ProductImage'
 
 // 静态翻译映射
 const translations: Record<string, Record<string, string>> = {
@@ -103,12 +104,12 @@ async function ProductsList({ lng }: { lng: string }) {
           key={product.id}
           className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow"
         >
-          {/* 产品图片占位符 */}
-          <div className="relative h-48 bg-gradient-to-br from-blue-400 to-blue-600">
-            <div className="absolute inset-0 flex items-center justify-center text-white text-2xl font-bold">
-              {product.country || 'eSIM'}
-            </div>
-          </div>
+          {/* 产品图片 */}
+          <ProductImage
+            imageUrl={product.image_url}
+            alt={product.name}
+            country={product.country}
+          />
 
           <div className="p-6">
             <h3 className="text-xl font-semibold text-gray-900 mb-2">
