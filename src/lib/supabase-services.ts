@@ -135,6 +135,7 @@ export function subscribeToProducts(
             stock: product.stock,
             country: product.country,
             validity_days: product.validity_days,
+            image_url: product.image_url,
             created_at: product.created_at,
             updated_at: product.updated_at,
           }
