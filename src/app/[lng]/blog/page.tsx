@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { getBlogPosts } from '@/lib/supabase-services'
 import { Suspense } from 'react'
+import { BlogCardImage } from '@/components/BlogCardImage'
 
 // 静态翻译映射
 const translations: Record<string, Record<string, string>> = {
@@ -66,10 +67,6 @@ function formatDate(dateString: string, locale: string): string {
 async function BlogPostsList({ lng }: { lng: string }) {
   const t = (key: string) => translations[lng]?.[key] || translations['en']?.[key] || key
 
-  // 记录页面生成时间（用于验证 ISR）
-  const buildTime = new Date().toISOString()
-  console.log(`[Blog Page] Generated at: ${buildTime} (locale: ${lng})`)
-
   // 从 Supabase 获取博客数据
   const { data: posts, error } = await getBlogPosts({
     locale: lng,
@@ -95,26 +92,18 @@ async function BlogPostsList({ lng }: { lng: string }) {
 
   return (
     <>
-      {/* ISR 验证：页面生成时间 */}
-      <div className="mb-4 p-3 bg-purple-50 border border-purple-200 rounded text-sm text-purple-800">
-        <strong>🕐 Page Generated:</strong> {buildTime} | <strong>Locale:</strong> {lng}
-      </div>
-
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
         {posts.map((post) => (
-        <article
+        <Link
           key={post.id}
-          className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow flex flex-col"
+          href={`/${lng}/blog/${post.slug}`}
+          className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow flex flex-col block"
         >
-          {/* 文章占位图 */}
-          <div className="relative h-48 bg-gradient-to-br from-purple-400 to-purple-600">
-            <div className="absolute inset-0 flex items-center justify-center text-white text-lg font-bold px-4 text-center line-clamp-2">
-              {post.title}
-            </div>
-          </div>
+          {/* 文章头图 */}
+          <BlogCardImage src={post.featured_image} alt={post.title} />
 
           <div className="p-6 flex flex-col flex-grow">
-            <h2 className="text-xl font-semibold text-gray-900 mb-3 line-clamp-2">
+            <h2 className="text-xl font-semibold text-gray-900 mb-3 line-clamp-2 hover:text-purple-600 transition-colors">
               {post.title}
             </h2>
 
@@ -143,15 +132,12 @@ async function BlogPostsList({ lng }: { lng: string }) {
               <time className="text-sm text-gray-500">
                 {post.published_at && formatDate(post.published_at, lng)}
               </time>
-              <Link
-                href={`/${lng}/blog/${post.slug}`}
-                className="text-purple-600 hover:text-purple-800 transition-colors text-sm font-medium"
-              >
+              <span className="text-purple-600 hover:text-purple-800 transition-colors text-sm font-medium">
                 {t('read_more')} →
-              </Link>
+              </span>
             </div>
           </div>
-        </article>
+        </Link>
         ))}
       </div>
     </>

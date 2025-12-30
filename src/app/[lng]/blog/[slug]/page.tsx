@@ -3,6 +3,9 @@ import { getBlogPostBySlug } from '@/lib/supabase-services'
 import { notFound } from 'next/navigation'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
+import { BlogContentRenderer } from '@/components/BlogContentRenderer'
+import { BlogFeaturedImage } from '@/components/BlogFeaturedImage'
+import type { ContentBlock } from '@/types/supabase'
 
 // 静态翻译映射
 const translations: Record<string, Record<string, string>> = {
@@ -95,26 +98,28 @@ export default async function BlogDetailPage({ params }: BlogDetailProps) {
     notFound()
   }
 
+  // 处理内容：判断是新格式（块级结构）还是旧格式（字符串）
+  const isBlockContent = Array.isArray(post.content)
+  const contentBlocks = isBlockContent ? (post.content as ContentBlock[]) : null
+  const contentString = !isBlockContent ? (post.content as string) : null
+
   return (
-    <main className="min-h-screen bg-gray-50">
-      <div className="container mx-auto px-4 py-12">
-        <article className="max-w-4xl mx-auto">
-          {/* 返回链接 */}
-          <Link
-            href={`/${lng}/blog`}
-            className="inline-flex items-center text-purple-600 hover:text-purple-800 transition-colors mb-8"
-          >
-            ← {t('back_to_blog')}
-          </Link>
+    <main className="min-h-screen bg-gray-50 overflow-x-hidden">
+      <div className="container mx-auto px-4 py-12 max-w-full">
+        <article className="max-w-4xl mx-auto w-full">
+          {/* 文章头图 */}
+          {post.featured_image && (
+            <BlogFeaturedImage src={post.featured_image} alt={post.title} />
+          )}
 
           {/* 文章头部 */}
-          <header className="bg-white rounded-lg shadow-md p-8 mb-8">
-            <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+          <header className="bg-white rounded-lg shadow-md p-4 sm:p-6 md:p-8 mb-8 w-full overflow-hidden">
+            <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 mb-4 break-words">
               {post.title}
             </h1>
 
             {/* 元信息 */}
-            <div className="flex flex-wrap items-center gap-4 text-sm text-gray-600 mb-4">
+            <div className="flex flex-wrap items-center gap-2 sm:gap-4 text-sm text-gray-600 mb-4">
               {post.published_at && (
                 <time className="flex items-center gap-2">
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -127,6 +132,32 @@ export default async function BlogDetailPage({ params }: BlogDetailProps) {
                   </svg>
                   {formatDate(post.published_at, lng)}
                 </time>
+              )}
+              {post.meta_data?.reading_time && (
+                <span className="flex items-center gap-2">
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                    />
+                  </svg>
+                  {post.meta_data.reading_time} {lng === 'zh' ? '分钟阅读' : lng === 'de' ? 'Min. Lesezeit' : 'min read'}
+                </span>
+              )}
+              {post.meta_data?.author_name && (
+                <span className="flex items-center gap-2">
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                    />
+                  </svg>
+                  {post.meta_data.author_name}
+                </span>
               )}
             </div>
 
@@ -146,28 +177,25 @@ export default async function BlogDetailPage({ params }: BlogDetailProps) {
           </header>
 
           {/* 文章内容 */}
-          <div className="bg-white rounded-lg shadow-md p-8">
+          <div className="bg-white rounded-lg shadow-md p-4 sm:p-6 md:p-8">
             {post.excerpt && (
               <div className="text-lg text-gray-700 italic mb-6 pb-6 border-b">
                 {post.excerpt}
               </div>
             )}
 
-            <div className="prose prose-lg max-w-none">
-              <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                {post.content}
-              </ReactMarkdown>
-            </div>
-          </div>
-
-          {/* 页脚返回链接 */}
-          <div className="mt-8 text-center">
-            <Link
-              href={`/${lng}/blog`}
-              className="inline-flex items-center px-6 py-3 bg-purple-600 text-white rounded-md hover:bg-purple-700 transition-colors"
-            >
-              ← {t('back_to_blog')}
-            </Link>
+            {/* 使用新的块级内容渲染器或旧的 Markdown 渲染器 */}
+            {isBlockContent && contentBlocks ? (
+              <BlogContentRenderer blocks={contentBlocks} />
+            ) : contentString ? (
+              <div className="prose prose-lg max-w-none">
+                <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                  {contentString}
+                </ReactMarkdown>
+              </div>
+            ) : (
+              <p className="text-gray-500">{lng === 'zh' ? '暂无内容' : lng === 'de' ? 'Kein Inhalt' : 'No content'}</p>
+            )}
           </div>
         </article>
       </div>

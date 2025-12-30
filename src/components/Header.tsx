@@ -122,20 +122,20 @@ export function Header({ lng }: HeaderProps) {
   }
 
   return (
-    <header className="bg-white shadow-md sticky top-0 z-50">
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+    <header className="bg-white shadow-md fixed top-0 left-0 right-0 z-50 w-full">
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-full">
         <div className="flex items-center justify-between h-16">
-          <div className="flex-shrink-0">
-            <Link href={`/${lng}`} className="flex items-center gap-3">
+          <div className="flex-shrink-0 min-w-0">
+            <Link href={`/${lng}`} className="flex items-center gap-2 sm:gap-3">
               <Image
                 src="/logo.png"
                 alt="eSIM Store Logo"
                 width={40}
                 height={40}
-                className="object-contain"
+                className="object-contain flex-shrink-0"
                 priority
               />
-              <span className="text-2xl font-bold text-gray-800">eSIM Store</span>
+              <span className="text-lg sm:text-2xl font-bold text-gray-800 truncate">eSIM Store</span>
             </Link>
           </div>
           
@@ -220,12 +220,12 @@ export function Header({ lng }: HeaderProps) {
             </button>
 
             {isMobileMenuOpen && (
-              <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-md shadow-lg py-1 border border-gray-200 z-50">
+              <div className="absolute top-full left-0 right-0 mt-2 mx-4 bg-white rounded-md shadow-lg py-1 border border-gray-200 z-50 max-w-full overflow-hidden">
                 {navLinks.map((link) => (
                   <Link
                     key={link.href}
                     href={link.href}
-                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
+                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors truncate"
                     onClick={() => setIsMobileMenuOpen(false)}
                   >
                     {link.label}
@@ -244,9 +244,9 @@ export function Header({ lng }: HeaderProps) {
                       alt={`${lang.nameEn} flag`}
                       width={16} 
                       height={12} 
-                      className="mr-2 rounded-sm"
+                      className="mr-2 rounded-sm flex-shrink-0"
                     />
-                    <span>{lang.name}</span>
+                    <span className="truncate">{lang.name}</span>
                   </Link>
                 ))}
               </div>

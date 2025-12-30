@@ -1,5 +1,5 @@
 import { supabase, extractLocalized, handleSupabaseError } from './supabase'
-import type { LocalizedProduct, LocalizedBlogPost, Database } from '@/types/supabase'
+import type { LocalizedProduct, LocalizedBlogPost, Database, ContentBlock, BlogPostMeta } from '@/types/supabase'
 import type { RealtimeChannel } from '@supabase/supabase-js'
 
 type EsimProduct = Database['public']['Tables']['esim_products']['Row']
@@ -191,16 +191,35 @@ export async function getBlogPosts(options: {
       const seoMeta = (post.seo_meta as Record<string, unknown>) || {}
       const localizedSeo = (seoMeta[locale] || seoMeta['en'] || {}) as Record<string, string>
 
+      // 处理内容：支持新的块级结构和旧格式（向后兼容）
+      const contentData = post.content as Record<string, unknown>
+      let localizedContent: ContentBlock[] | string = ''
+      
+      if (contentData && typeof contentData === 'object') {
+        const localeContent = contentData[locale] || contentData['en']
+        if (Array.isArray(localeContent)) {
+          localizedContent = localeContent as ContentBlock[]
+        } else if (typeof localeContent === 'string') {
+          localizedContent = localeContent
+        } else {
+          localizedContent = extractLocalized<string>(contentData as Record<string, string>, locale) || ''
+        }
+      } else {
+        localizedContent = extractLocalized<string>(post.content as Record<string, string>, locale) || ''
+      }
+
       return {
         id: post.id,
         slug: post.slug,
         title: extractLocalized<string>(post.title as Record<string, string>, locale) || '',
-        content: extractLocalized<string>(post.content as Record<string, string>, locale) || '',
+        content: localizedContent,
         excerpt: extractLocalized<string>(post.excerpt as Record<string, string>, locale) || null,
         tags: (post.tags as string[]) || [],
         author_id: post.author_id,
         status: post.status,
         published_at: post.published_at,
+        featured_image: post.featured_image,
+        meta_data: (post.meta_data as BlogPostMeta) || null,
         created_at: post.created_at,
         updated_at: post.updated_at,
         seo_title: localizedSeo.title || null,
@@ -242,16 +261,45 @@ export async function getBlogPostBySlug(
     const seoMeta = (post.seo_meta as Record<string, unknown>) || {}
     const localizedSeo = (seoMeta[locale] || seoMeta['en'] || {}) as Record<string, string>
 
+    // 处理内容：支持新的块级结构和旧格式（向后兼容）
+    const contentData = post.content as Record<string, unknown>
+    let localizedContent: ContentBlock[] | string = ''
+    
+    if (contentData && typeof contentData === 'object') {
+      const localeContent = contentData[locale] || contentData['en']
+      
+      // 如果是数组，说明是新格式（块级结构）
+      if (Array.isArray(localeContent)) {
+        localizedContent = localeContent as ContentBlock[]
+      } 
+      // 如果是字符串，说明是旧格式
+      else if (typeof localeContent === 'string') {
+        localizedContent = localeContent
+      }
+      // 如果都没有，尝试提取字符串
+      else {
+        localizedContent = extractLocalized<string>(contentData as Record<string, string>, locale) || ''
+      }
+    } else {
+      // 向后兼容：如果 content 是字符串格式
+      localizedContent = extractLocalized<string>(post.content as Record<string, string>, locale) || ''
+    }
+
+    // 处理元数据
+    const metaData = (post.meta_data as Record<string, unknown>) || null
+
     const localizedData: LocalizedBlogPost = {
       id: post.id,
       slug: post.slug,
       title: extractLocalized<string>(post.title as Record<string, string>, locale) || '',
-      content: extractLocalized<string>(post.content as Record<string, string>, locale) || '',
+      content: localizedContent,
       excerpt: extractLocalized<string>(post.excerpt as Record<string, string>, locale) || null,
       tags: (post.tags as string[]) || [],
       author_id: post.author_id,
       status: post.status,
       published_at: post.published_at,
+      featured_image: post.featured_image,
+      meta_data: metaData as BlogPostMeta | null,
       created_at: post.created_at,
       updated_at: post.updated_at,
       seo_title: localizedSeo.title || null,
@@ -287,16 +335,35 @@ export function subscribeToBlogPosts(
           const seoMeta = (post.seo_meta as Record<string, unknown>) || {}
           const localizedSeo = (seoMeta[locale] || seoMeta['en'] || {}) as Record<string, string>
 
+          // 处理内容：支持新的块级结构和旧格式（向后兼容）
+          const contentData = post.content as Record<string, unknown>
+          let localizedContent: ContentBlock[] | string = ''
+          
+          if (contentData && typeof contentData === 'object') {
+            const localeContent = contentData[locale] || contentData['en']
+            if (Array.isArray(localeContent)) {
+              localizedContent = localeContent as ContentBlock[]
+            } else if (typeof localeContent === 'string') {
+              localizedContent = localeContent
+            } else {
+              localizedContent = extractLocalized<string>(contentData as Record<string, string>, locale) || ''
+            }
+          } else {
+            localizedContent = extractLocalized<string>(post.content as Record<string, string>, locale) || ''
+          }
+
           const localizedPost: LocalizedBlogPost = {
             id: post.id,
             slug: post.slug,
             title: extractLocalized<string>(post.title as Record<string, string>, locale) || '',
-            content: extractLocalized<string>(post.content as Record<string, string>, locale) || '',
+            content: localizedContent,
             excerpt: extractLocalized<string>(post.excerpt as Record<string, string>, locale) || null,
             tags: (post.tags as string[]) || [],
             author_id: post.author_id,
             status: post.status,
             published_at: post.published_at,
+            featured_image: post.featured_image,
+            meta_data: (post.meta_data as BlogPostMeta) || null,
             created_at: post.created_at,
             updated_at: post.updated_at,
             seo_title: localizedSeo.title || null,
