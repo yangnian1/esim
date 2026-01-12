@@ -21,7 +21,7 @@ import { GoogleAnalytics } from "@/components/GoogleAnalytics";
 // });
 
 export const metadata: Metadata = {
-  title: "eSIM Store - Global Travel eSIM Solutions",
+  title: "hello esims - Global Travel eSIM Solutions",
   description: "Buy eSIMs for your travels worldwide. Stay connected with affordable data plans for over 200 countries.",
   icons: {
     icon: '/favicon.ico',

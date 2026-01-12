@@ -32,7 +32,7 @@ export const Footer = ({ lng }: { lng: string }) => {
           ))}
         </div>
         <p className="text-gray-500 text-sm mt-4">
-          © {new Date().getFullYear()} eSIM Store. All rights reserved.
+          © {new Date().getFullYear()} hello esims. All rights reserved.
         </p>
       </div>
     </footer>

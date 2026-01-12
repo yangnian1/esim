@@ -129,13 +129,13 @@ export function Header({ lng }: HeaderProps) {
             <Link href={`/${lng}`} className="flex items-center gap-2 sm:gap-3">
               <Image
                 src="/logo.png"
-                alt="eSIM Store Logo"
+                alt="hello esims Logo"
                 width={40}
                 height={40}
                 className="object-contain flex-shrink-0"
                 priority
               />
-              <span className="text-lg sm:text-2xl font-bold text-gray-800 truncate">eSIM Store</span>
+              <span className="text-lg sm:text-2xl font-bold text-gray-800 truncate">hello esims</span>
             </Link>
           </div>
           
