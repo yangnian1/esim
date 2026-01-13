@@ -134,11 +134,11 @@ export default async function BlogDetailPage({ params, searchParams }: BlogDetai
   let isAuthorized = false
 
   // 如果是预览模式，检查用户权限
-  let serverClient = null
+  let serverClient: Awaited<ReturnType<typeof createServerClient>> | undefined = undefined
   if (isPreviewMode) {
     // 创建服务端客户端以获取用户会话
     serverClient = await createServerClient()
-    const { user, error: userError } = await getCurrentUserServer()
+    const { user } = await getCurrentUserServer()
     if (user) {
       // 先获取文章（包括草稿）以检查作者，使用服务端客户端
       const { data: postForAuth } = await getBlogPostBySlug(slug, lng, true, serverClient)
