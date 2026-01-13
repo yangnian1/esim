@@ -1,6 +1,6 @@
 import { supabase, extractLocalized, handleSupabaseError } from './supabase'
 import type { LocalizedProduct, LocalizedBlogPost, Database, ContentBlock, BlogPostMeta } from '@/types/supabase'
-import type { RealtimeChannel } from '@supabase/supabase-js'
+import type { RealtimeChannel, SupabaseClient } from '@supabase/supabase-js'
 
 type EsimProduct = Database['public']['Tables']['esim_products']['Row']
 type BlogPost = Database['public']['Tables']['blog_posts']['Row']
@@ -235,18 +235,32 @@ export async function getBlogPosts(options: {
 
 /**
  * 根据 slug 获取单个博客文章
+ * @param slug - 文章 slug
+ * @param locale - 语言代码
+ * @param allowDraft - 是否允许获取草稿（预览模式），默认为 false
+ * @param client - 可选的 Supabase 客户端（用于服务端预览模式）
  */
 export async function getBlogPostBySlug(
   slug: string,
-  locale: string
+  locale: string,
+  allowDraft: boolean = false,
+  client?: SupabaseClient<Database>
 ): Promise<{ data: LocalizedBlogPost | null; error: string | null }> {
   try {
-    const { data, error } = await supabase
+    // 如果提供了客户端（服务端），使用它；否则使用默认的客户端
+    const dbClient = client || supabase
+    
+    let query = dbClient
       .from('blog_posts')
       .select('*')
       .eq('slug', slug)
-      .eq('status', 'published')
-      .single()
+    
+    // 如果不是预览模式，只获取已发布的文章
+    if (!allowDraft) {
+      query = query.eq('status', 'published')
+    }
+    
+    const { data, error } = await query.single()
 
     if (error) {
       return { data: null, error: handleSupabaseError(error) }

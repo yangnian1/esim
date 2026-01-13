@@ -1,26 +1,20 @@
-import { createClient } from '@supabase/supabase-js'
+import { createBrowserClient } from '@supabase/ssr'
 import type { Database } from '@/types/supabase'
 
 // 环境变量验证
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 
 if (!supabaseUrl || !supabaseAnonKey) {
   throw new Error('Missing Supabase environment variables')
 }
 
-// 创建 Supabase 客户端
-export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey, {
-  auth: {
-    persistSession: true,
-    autoRefreshToken: true,
-  },
-  realtime: {
-    params: {
-      eventsPerSecond: 10,
-    },
-  },
-})
+// 创建浏览器客户端（用于客户端组件）
+// 使用 @supabase/ssr 可以自动将会话存储到 cookies 中
+export const supabase = createBrowserClient<Database>(supabaseUrl, supabaseAnonKey)
+
+// 导出配置供服务端使用
+export { supabaseUrl, supabaseAnonKey }
 
 // 辅助函数：从 JSONB 中提取指定语言的内容
 export function extractLocalized<T = string>(

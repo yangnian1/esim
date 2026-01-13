@@ -66,7 +66,7 @@ export async function signOut() {
 }
 
 /**
- * 获取当前用户
+ * 获取当前用户（客户端使用）
  */
 export async function getCurrentUser() {
   try {
@@ -81,6 +81,7 @@ export async function getCurrentUser() {
     return { user: null, error: error instanceof Error ? error.message : 'Unknown error' }
   }
 }
+
 
 /**
  * 获取当前用户的 Profile

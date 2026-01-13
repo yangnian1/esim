@@ -6,6 +6,7 @@ export { BlogPreview } from './BlogPreview'
 export { ArticleList } from './ArticleList'
 export { CustomerReviews } from './CustomerReviews'
 export { ArticleShowcase } from './ArticleShowcase'
+export { PreviewBanner } from './PreviewBanner'
 
 // 布局组件
 // 可以在这里添加Header、Footer等组件 
