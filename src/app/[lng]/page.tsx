@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { Suspense } from 'react'
 import { getProducts } from '@/lib/supabase-services'
 import { ProductImage } from '@/components/ProductImage'
+import { ViewDetailsButton } from '@/components/ViewDetailsButton'
 
 // 静态翻译映射
 const translations: Record<string, Record<string, string>> = {
@@ -165,12 +166,7 @@ async function FeaturedProducts({ lng }: { lng: string }) {
                     ${product.price.toFixed(2)}
                   </span>
                 </div>
-                <Link
-                  href={`/${lng}/products/${product.id}`}
-                  className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors text-sm font-medium"
-                >
-                  {t('view_details')}
-                </Link>
+                <ViewDetailsButton text={t('view_details')} />
               </div>
             </div>
           </div>
