@@ -124,18 +124,18 @@ export function Header({ lng }: HeaderProps) {
   return (
     <header className="bg-white shadow-md fixed top-0 left-0 right-0 z-50 w-full">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-full">
-        <div className="flex items-center justify-between h-16">
+        <div className="flex items-center justify-between h-20">
           <div className="flex-shrink-0 min-w-0">
-            <Link href={`/${lng}`} className="flex items-center gap-2 sm:gap-3">
+            <Link href={`/${lng}`} className="flex items-center gap-1 sm:gap-2">
               <Image
                 src="/logo.png"
-                alt="hello esims Logo"
-                width={40}
-                height={40}
-                className="object-contain flex-shrink-0"
+                alt="Hello eSIMs Logo"
+                width={72}
+                height={72}
+                className="object-contain flex-shrink-0 -my-2"
                 priority
               />
-              <span className="text-lg sm:text-2xl font-bold text-gray-800 truncate">hello esims</span>
+              <span className="text-xl sm:text-2xl font-bold text-gray-800 truncate">Hello eSIMs</span>
             </Link>
           </div>
           
