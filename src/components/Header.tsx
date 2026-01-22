@@ -2,7 +2,7 @@
 'use client'
 import Link from 'next/link'
 import Image from 'next/image'
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { languages } from '@/i18n/settings'
 import { usePathname } from 'next/navigation'
 import { UserMenu } from './UserMenu'
@@ -71,6 +71,7 @@ export function Header({ lng }: HeaderProps) {
   const [isLanguageDropdownOpen, setIsLanguageDropdownOpen] = useState(false)
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const pathname = usePathname() // 使用Next.js的usePathname获取当前路径
+  const languageDropdownRef = useRef<HTMLDivElement>(null)
   
   const t = (key: string) => translations[lng]?.[key] || translations['en']?.[key] || key
   
@@ -121,6 +122,26 @@ export function Header({ lng }: HeaderProps) {
     nameEn: lng.toUpperCase() 
   }
 
+  // 点击外部区域关闭语言下拉框
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        languageDropdownRef.current &&
+        !languageDropdownRef.current.contains(event.target as Node)
+      ) {
+        setIsLanguageDropdownOpen(false)
+      }
+    }
+
+    if (isLanguageDropdownOpen) {
+      document.addEventListener('mousedown', handleClickOutside)
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside)
+    }
+  }, [isLanguageDropdownOpen])
+
   return (
     <header className="bg-white shadow-md fixed top-0 left-0 right-0 z-50 w-full">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-full">
@@ -157,7 +178,7 @@ export function Header({ lng }: HeaderProps) {
             <UserMenu lng={lng} />
 
             {/* 语言切换 - 客户端交互版本 */}
-            <div className="relative">
+            <div className="relative" ref={languageDropdownRef}>
               <button
                 onClick={() => setIsLanguageDropdownOpen(!isLanguageDropdownOpen)}
                 className="flex items-center space-x-2 px-3 py-2 text-sm font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50 rounded-md transition-colors"
