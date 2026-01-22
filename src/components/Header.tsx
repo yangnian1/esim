@@ -201,30 +201,34 @@ export function Header({ lng }: HeaderProps) {
                 </svg>
               </button>
               
-              {isLanguageDropdownOpen && (
-                <div className="absolute top-full right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 border border-gray-200 z-50">
-                  {languageLinks.map((lang) => (
-                    <Link 
-                      key={lang.code} 
-                      href={lang.href} 
-                      className="flex items-center px-4 py-3 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
-                      onClick={() => setIsLanguageDropdownOpen(false)}
-                    >
-                      <Image 
-                        src={lang.flag} 
-                        alt={`${lang.nameEn} flag`}
-                        width={20} 
-                        height={15} 
-                        className="mr-3 rounded-sm"
-                      />
-                      <div className="flex flex-col">
-                        <span className="font-medium">{lang.name}</span>
-                        <span className="text-xs text-gray-500">{lang.nameEn}</span>
-                      </div>
-                    </Link>
-                  ))}
-                </div>
-              )}
+              <div
+                className={`absolute top-full right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 border border-gray-200 z-50 transition-all duration-300 ease-in-out ${
+                  isLanguageDropdownOpen
+                    ? 'opacity-100 translate-y-0 pointer-events-auto'
+                    : 'opacity-0 -translate-y-2 pointer-events-none'
+                }`}
+              >
+                {languageLinks.map((lang) => (
+                  <Link 
+                    key={lang.code} 
+                    href={lang.href} 
+                    className="flex items-center px-4 py-3 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
+                    onClick={() => setIsLanguageDropdownOpen(false)}
+                  >
+                    <Image 
+                      src={lang.flag} 
+                      alt={`${lang.nameEn} flag`}
+                      width={20} 
+                      height={15} 
+                      className="mr-3 rounded-sm"
+                    />
+                    <div className="flex flex-col">
+                      <span className="font-medium">{lang.name}</span>
+                      <span className="text-xs text-gray-500">{lang.nameEn}</span>
+                    </div>
+                  </Link>
+                ))}
+              </div>
             </div>
           </nav>
           
