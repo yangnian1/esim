@@ -1,7 +1,8 @@
 import Link from 'next/link'
-import { getBlogPosts } from '@/lib/supabase-services'
+import { getPublishedPosts } from '@/lib/blog'
 import { Suspense } from 'react'
 import { BlogCardImage } from '@/components/BlogCardImage'
+import { createServerClient, getCurrentUserServer } from '@/lib/supabase-server'
 
 // 静态翻译映射
 const translations: Record<string, Record<string, string>> = {
@@ -68,9 +69,11 @@ async function BlogPostsList({ lng }: { lng: string }) {
   const t = (key: string) => translations[lng]?.[key] || translations['en']?.[key] || key
 
   // 从 Supabase 获取博客数据
-  const { data: posts, error } = await getBlogPosts({
-    locale: lng,
-    pageSize: 20,
+  const serverClient = await createServerClient()
+  const { user } = await getCurrentUserServer()
+  const { data: posts, error } = await getPublishedPosts(lng, 20, {
+    allowDraftAuthorId: user?.id ?? null,
+    client: serverClient,
   })
 
   if (error) {
@@ -93,16 +96,26 @@ async function BlogPostsList({ lng }: { lng: string }) {
   return (
     <>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-        {posts.map((post) => (
+        {posts.map((post) => {
+        const postSlug = post.slug.replace(/^\/+/, '')
+        const isDraft = post.status !== 'published'
+        return (
         <Link
           key={post.id}
-          href={`/${lng}/blog/${post.slug}`}
+          href={`/${lng}/blog/${postSlug}${isDraft ? '?preview=true' : ''}`}
           className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow flex flex-col block"
         >
           {/* 文章头图 */}
           <BlogCardImage src={post.featured_image} alt={post.title} />
 
           <div className="p-6 flex flex-col flex-grow">
+            {isDraft ? (
+              <div className="mb-3">
+                <span className="inline-flex items-center rounded-full bg-amber-100 px-2 py-1 text-xs font-medium text-amber-800">
+                  Draft
+                </span>
+              </div>
+            ) : null}
             <h2 className="text-xl font-semibold text-gray-900 mb-3 line-clamp-2 hover:text-purple-600 transition-colors">
               {post.title}
             </h2>
@@ -138,7 +151,7 @@ async function BlogPostsList({ lng }: { lng: string }) {
             </div>
           </div>
         </Link>
-        ))}
+        )})}
       </div>
     </>
   )

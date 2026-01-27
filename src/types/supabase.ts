@@ -168,6 +168,12 @@ export type BlogPostMeta = {
   author_name?: string
   author_avatar?: string
   category?: string
+  template?: 'pillar' | 'blog'
+  seo?: {
+    title?: string
+    description?: string
+    canonical?: string
+  }
   [key: string]: unknown
 }
 

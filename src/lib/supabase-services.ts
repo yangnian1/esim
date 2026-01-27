@@ -156,15 +156,29 @@ export async function getBlogPosts(options: {
   page?: number
   pageSize?: number
   tag?: string
+  allowDraftAuthorId?: string | null
+  client?: SupabaseClient<Database>
 }): Promise<{ data: LocalizedBlogPost[]; error: string | null; total: number }> {
-  const { locale, page = 1, pageSize = 10, tag } = options
+  const { locale, page = 1, pageSize = 10, tag, allowDraftAuthorId, client } = options
 
   try {
-    let query = supabase
+    const nowIso = new Date().toISOString()
+    const dbClient = client || supabase
+    let query = dbClient
       .from('blog_posts')
       .select('*', { count: 'exact' })
-      .eq('status', 'published')
       .order('published_at', { ascending: false })
+
+    if (allowDraftAuthorId) {
+      const publishedFilter = `and(status.eq.published,published_at.not.is.null,published_at.lte.${nowIso})`
+      const authorFilter = `author_id.eq.${allowDraftAuthorId}`
+      query = query.or(`${publishedFilter},${authorFilter}`)
+    } else {
+      query = query
+        .eq('status', 'published')
+        .not('published_at', 'is', null)
+        .lte('published_at', nowIso)
+    }
 
     // 按标签筛选（需要使用 PostgreSQL JSONB 查询）
     if (tag) {
@@ -247,20 +261,30 @@ export async function getBlogPostBySlug(
   client?: SupabaseClient<Database>
 ): Promise<{ data: LocalizedBlogPost | null; error: string | null }> {
   try {
+    const nowIso = new Date().toISOString()
+    const normalizedSlug = slug.replace(/^\/+/, '')
+    const slugCandidates = [normalizedSlug, `/${normalizedSlug}`]
     // 如果提供了客户端（服务端），使用它；否则使用默认的客户端
     const dbClient = client || supabase
     
     let query = dbClient
       .from('blog_posts')
       .select('*')
-      .eq('slug', slug)
+      .in('slug', slugCandidates)
     
     // 如果不是预览模式，只获取已发布的文章
     if (!allowDraft) {
-      query = query.eq('status', 'published')
+      query = query
+        .eq('status', 'published')
+        .not('published_at', 'is', null)
+        .lte('published_at', nowIso)
     }
     
-    const { data, error } = await query.single()
+    const { data, error } = await query
+      .order('published_at', { ascending: false, nullsFirst: false })
+      .order('updated_at', { ascending: false })
+      .limit(1)
+      .maybeSingle()
 
     if (error) {
       return { data: null, error: handleSupabaseError(error) }

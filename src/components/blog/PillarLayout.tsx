@@ -1,0 +1,103 @@
+import type { ReactNode } from 'react'
+import { BlogFeaturedImage } from '@/components/BlogFeaturedImage'
+import type { LocalizedBlogPost } from '@/types/supabase'
+import type { FaqItem, TocHeading } from '@/lib/markdown'
+import { Toc } from '@/components/markdown/Toc'
+import { MarkdownRenderer } from '@/components/markdown/MarkdownRenderer'
+
+type PillarLayoutProps = {
+  post: LocalizedBlogPost
+  markdown: string
+  headings: TocHeading[]
+  faqs: FaqItem[]
+  tocTitle: string
+  faqTitle: string
+  widget?: ReactNode
+}
+
+export function PillarLayout({
+  post,
+  markdown,
+  headings,
+  faqs,
+  tocTitle,
+  faqTitle,
+  widget,
+}: PillarLayoutProps) {
+  return (
+    <main className="min-h-screen bg-gray-50">
+      <div className="container mx-auto px-4 py-10">
+        <article className="space-y-8">
+          {post.featured_image && (
+            <BlogFeaturedImage src={post.featured_image} alt={post.title} />
+          )}
+
+          <header className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+            <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">{post.title}</h1>
+            {post.excerpt && <p className="text-lg text-gray-600">{post.excerpt}</p>}
+          </header>
+
+          <div className="grid grid-cols-1 lg:grid-cols-[260px_1fr] gap-8">
+            {headings.length > 0 ? (
+              <aside className="hidden lg:block">
+                <div className="lg:sticky lg:top-24">
+                  <Toc headings={headings} title={tocTitle} />
+                </div>
+              </aside>
+            ) : null}
+
+            <div className="space-y-8">
+              {headings.length > 0 ? (
+                <div className="lg:hidden">
+                  <details className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
+                    <summary className="cursor-pointer text-sm font-semibold text-gray-700">
+                      {tocTitle}
+                    </summary>
+                    <div className="mt-4">
+                      <Toc headings={headings} title="" />
+                    </div>
+                  </details>
+                </div>
+              ) : null}
+
+              <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+                <MarkdownRenderer
+                  markdown={markdown}
+                  headings={headings}
+                  className="prose prose-lg max-w-none"
+                  widgetMap={widget ? { TurkeyPlansWidget: widget } : undefined}
+                />
+              </div>
+
+              {faqs.length > 0 && (
+                <section className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+                  <h2 className="text-2xl font-semibold text-gray-900 mb-4">{faqTitle}</h2>
+                  <div className="space-y-3">
+                    {faqs.map((faq) => (
+                      <details
+                        key={faq.question}
+                        className="rounded-lg border border-gray-200 bg-gray-50 px-4 py-3"
+                      >
+                        <summary className="cursor-pointer text-base font-medium text-gray-900">
+                          {faq.question}
+                        </summary>
+                        {faq.answer && (
+                          <div className="mt-3 text-sm text-gray-700">
+                            <MarkdownRenderer
+                              markdown={faq.answer}
+                              className="prose prose-sm max-w-none"
+                            />
+                          </div>
+                        )}
+                      </details>
+                    ))}
+                  </div>
+                </section>
+              )}
+            </div>
+          </div>
+        </article>
+      </div>
+    </main>
+  )
+}
