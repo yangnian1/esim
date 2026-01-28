@@ -44,12 +44,12 @@ export default async function RootLayout({
 }>) {
   const { lng } = await params
   return (
-    <html lang={lng} dir="ltr" className="overflow-x-hidden">
-      <body className="antialiased font-sans overflow-x-hidden">
+    <html lang={lng} dir="ltr">
+      <body className="antialiased font-sans">
         <GoogleAnalytics />
         <AuthProvider>
           <Header lng={lng} />
-          <main className="overflow-x-hidden pt-16">{children}</main>
+          <main className="pt-16">{children}</main>
           <Footer lng={lng} />
         </AuthProvider>
       </body>

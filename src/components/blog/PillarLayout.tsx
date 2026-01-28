@@ -54,7 +54,7 @@ export function PillarLayout({
 
             <div className="space-y-8">
               {hasToc ? (
-                <div className="lg:hidden">
+                <div className="lg:hidden sticky top-20 z-20">
                   <details className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
                     <summary className="cursor-pointer text-sm font-semibold text-gray-700">
                       {tocTitle}
