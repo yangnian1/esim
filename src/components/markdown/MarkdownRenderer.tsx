@@ -1,7 +1,10 @@
+'use client'
+
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
-import type { ReactNode } from 'react'
-import { extractHeadings, type TocHeading } from '@/lib/markdown'
+import type { MouseEventHandler, ReactNode } from 'react'
+import { useEffect } from 'react'
+import { createSlugger, extractHeadings, type TocHeading } from '@/lib/markdown'
 
 type MarkdownRendererProps = {
   markdown: string
@@ -22,7 +25,24 @@ const getTextContent = (node: unknown): string => {
 
 export function MarkdownRenderer({ markdown, headings, className, widgetMap }: MarkdownRendererProps) {
   const resolvedHeadings = headings ?? extractHeadings(markdown)
-  let headingIndex = 0
+  // Create a mapping from heading text to id to ensure consistency between server and client
+  const headingIdMap = new Map<string, string>()
+  resolvedHeadings.forEach((heading) => {
+    headingIdMap.set(heading.text, heading.id)
+  })
+  
+  // Fallback slugger for headings not in the map (shouldn't happen if headings are provided)
+  const slugger = createSlugger()
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    const hash = window.location.hash.replace(/^#/, '')
+    if (!hash) return
+    const el = document.getElementById(hash)
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    }
+  }, [markdown])
 
   const renderMarkdown = (value: string) => (
     <ReactMarkdown
@@ -30,25 +50,35 @@ export function MarkdownRenderer({ markdown, headings, className, widgetMap }: M
       components={{
         h2({ ...props }) {
           const text = getTextContent(props.children)
-          const fallbackId = text.toLowerCase().replace(/\s+/g, '-')
-          const heading = resolvedHeadings[headingIndex]
-          if (heading?.level === 2) headingIndex += 1
-          const id = heading?.level === 2 ? heading.id : fallbackId
-          return <h2 id={id} {...props} />
+          // Use the id from headings map if available, otherwise generate one
+          const id = headingIdMap.get(text) ?? slugger(text)
+          const className = [props.className, 'scroll-mt-24'].filter(Boolean).join(' ')
+          return <h2 id={id} {...props} className={className} />
         },
         h3({ ...props }) {
           const text = getTextContent(props.children)
-          const fallbackId = text.toLowerCase().replace(/\s+/g, '-')
-          const heading = resolvedHeadings[headingIndex]
-          if (heading?.level === 3) headingIndex += 1
-          const id = heading?.level === 3 ? heading.id : fallbackId
-          return <h3 id={id} {...props} />
+          // Use the id from headings map if available, otherwise generate one
+          const id = headingIdMap.get(text) ?? slugger(text)
+          const className = [props.className, 'scroll-mt-24'].filter(Boolean).join(' ')
+          return <h3 id={id} {...props} className={className} />
         },
         img({ ...props }) {
           return <img {...props} className="rounded-lg shadow-sm" loading="lazy" />
         },
         a({ ...props }) {
           const href = props.href ?? ''
+          if (href.startsWith('#')) {
+            const targetId = href.replace(/^#/, '')
+            const onClick: MouseEventHandler<HTMLAnchorElement> = (event) => {
+              event.preventDefault()
+              const el = document.getElementById(targetId)
+              if (el) {
+                el.scrollIntoView({ behavior: 'smooth', block: 'start' })
+                window.history.replaceState(null, '', `#${targetId}`)
+              }
+            }
+            return <a {...props} onClick={onClick} />
+          }
           const isExternal = href.startsWith('http')
           return (
             <a

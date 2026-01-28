@@ -10,16 +10,19 @@ export type FaqItem = {
 }
 
 const slugify = (value: string): string => {
-  const normalized = value
+  const withoutDiacritics = value
+    .normalize('NFKD')
+    .replace(/[\u0300-\u036f]/g, '')
+  const normalized = withoutDiacritics
     .toLowerCase()
     .trim()
-    .replace(/[^\w\s-]/g, '')
+    .replace(/[^a-z0-9\s-]/g, '')
     .replace(/\s+/g, '-')
     .replace(/-+/g, '-')
   return normalized.replace(/^-|-$/g, '')
 }
 
-const createSlugger = () => {
+export const createSlugger = () => {
   const seen: Record<string, number> = {}
   return (value: string) => {
     const base = slugify(value) || 'section'

@@ -13,6 +13,7 @@ type PillarLayoutProps = {
   tocTitle: string
   faqTitle: string
   widget?: ReactNode
+  showToc?: boolean
 }
 
 export function PillarLayout({
@@ -23,7 +24,10 @@ export function PillarLayout({
   tocTitle,
   faqTitle,
   widget,
+  showToc = true,
 }: PillarLayoutProps) {
+  const hasToc = showToc && headings.length > 0
+
   return (
     <main className="min-h-screen bg-gray-50">
       <div className="container mx-auto px-4 py-10">
@@ -37,17 +41,19 @@ export function PillarLayout({
             {post.excerpt && <p className="text-lg text-gray-600">{post.excerpt}</p>}
           </header>
 
-          <div className="grid grid-cols-1 lg:grid-cols-[260px_1fr] gap-8">
-            {headings.length > 0 ? (
-              <aside className="hidden lg:block">
-                <div className="lg:sticky lg:top-24">
+          <div className="grid grid-cols-1 gap-8 lg:grid-cols-[260px_1fr] lg:items-start">
+            {hasToc ? (
+              <aside className="hidden lg:block lg:sticky lg:top-24 lg:self-start">
+                <div className="max-h-[calc(100vh-6rem)] overflow-auto">
                   <Toc headings={headings} title={tocTitle} />
                 </div>
               </aside>
-            ) : null}
+            ) : (
+              <div className="hidden lg:block" />
+            )}
 
             <div className="space-y-8">
-              {headings.length > 0 ? (
+              {hasToc ? (
                 <div className="lg:hidden">
                   <details className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
                     <summary className="cursor-pointer text-sm font-semibold text-gray-700">

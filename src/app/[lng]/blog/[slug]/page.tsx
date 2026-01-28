@@ -205,8 +205,10 @@ export default async function BlogDetailPage({ params, searchParams }: BlogDetai
   const isBlockContent = Array.isArray(post.content)
   const contentBlocks = isBlockContent ? (post.content as ContentBlock[]) : null
   const contentString = !isBlockContent ? (post.content as string) : null
-  const metaTemplate = (post.meta_data as Record<string, unknown> | null)?.template
+  const metaData = post.meta_data as Record<string, unknown> | null
+  const metaTemplate = metaData?.template
   const resolvedTemplate = metaTemplate === 'pillar' ? 'pillar' : 'blog'
+  const tocEnabled = (metaData?.toc as { enabled?: boolean } | undefined)?.enabled !== false
 
   if (contentBlocks && !contentString) {
     return (
@@ -264,6 +266,7 @@ export default async function BlogDetailPage({ params, searchParams }: BlogDetai
         faqs={faqs}
         tocTitle={t('toc_title')}
         faqTitle={t('faq_title')}
+        showToc={tocEnabled}
         widget={
           shouldLoadTurkeyPlans && turkeyPlansResult ? (
             <TurkeyPlansWidget products={turkeyPlansResult.data} lng={lng} />
