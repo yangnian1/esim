@@ -262,8 +262,16 @@ export async function getBlogPostBySlug(
 ): Promise<{ data: LocalizedBlogPost | null; error: string | null }> {
   try {
     const nowIso = new Date().toISOString()
-    const normalizedSlug = slug.replace(/^\/+/, '')
-    const slugCandidates = [normalizedSlug, `/${normalizedSlug}`]
+    // 兼容带有 URL 编码（如 ü -> %C3%BC）以及前后带 / 的多种 slug 形式
+    const decodedSlug = decodeURIComponent(slug)
+    const normalizedSlug = decodedSlug.replace(/^\/+/, '')
+    const encodedSlug = encodeURIComponent(normalizedSlug)
+    const slugCandidates = [
+      normalizedSlug,
+      `/${normalizedSlug}`,
+      encodedSlug,
+      `/${encodedSlug}`,
+    ]
     // 如果提供了客户端（服务端），使用它；否则使用默认的客户端
     const dbClient = client || supabase
     
