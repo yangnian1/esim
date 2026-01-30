@@ -4,7 +4,7 @@ import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import type { MouseEventHandler, ReactNode } from 'react'
 import { useEffect } from 'react'
-import { createSlugger, extractHeadings, type TocHeading } from '@/lib/markdown'
+import { createSlugger, type TocHeading } from '@/lib/markdown'
 
 type MarkdownRendererProps = {
   markdown: string
@@ -23,8 +23,8 @@ const getTextContent = (node: unknown): string => {
   return ''
 }
 
-export function MarkdownRenderer({ markdown, headings, className, widgetMap }: MarkdownRendererProps) {
-  const resolvedHeadings = headings ?? extractHeadings(markdown)
+export function MarkdownRenderer({ markdown, className, widgetMap }: MarkdownRendererProps) {
+  // const resolvedHeadings = headings ?? extractHeadings(markdown)
   // Create a fresh slugger per render to avoid StrictMode double-render drift.
   const slugger = createSlugger()
 
