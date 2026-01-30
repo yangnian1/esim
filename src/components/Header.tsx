@@ -2,7 +2,7 @@
 'use client'
 import Link from 'next/link'
 import Image from 'next/image'
-import { useState, useEffect, useRef } from 'react'
+import { useState } from 'react'
 import { languages } from '@/i18n/settings'
 import { usePathname } from 'next/navigation'
 import { UserMenu } from './UserMenu'
@@ -71,7 +71,6 @@ export function Header({ lng }: HeaderProps) {
   const [isLanguageDropdownOpen, setIsLanguageDropdownOpen] = useState(false)
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const pathname = usePathname() // 使用Next.js的usePathname获取当前路径
-  const languageDropdownRef = useRef<HTMLDivElement>(null)
   
   const t = (key: string) => translations[lng]?.[key] || translations['en']?.[key] || key
   
@@ -122,41 +121,21 @@ export function Header({ lng }: HeaderProps) {
     nameEn: lng.toUpperCase() 
   }
 
-  // 点击外部区域关闭语言下拉框
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (
-        languageDropdownRef.current &&
-        !languageDropdownRef.current.contains(event.target as Node)
-      ) {
-        setIsLanguageDropdownOpen(false)
-      }
-    }
-
-    if (isLanguageDropdownOpen) {
-      document.addEventListener('mousedown', handleClickOutside)
-    }
-
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside)
-    }
-  }, [isLanguageDropdownOpen])
-
   return (
     <header className="bg-white shadow-md fixed top-0 left-0 right-0 z-50 w-full">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-full">
-        <div className="flex items-center justify-between h-20">
+        <div className="flex items-center justify-between h-16">
           <div className="flex-shrink-0 min-w-0">
-            <Link href={`/${lng}`} className="flex items-center gap-1 sm:gap-2">
+            <Link href={`/${lng}`} className="flex items-center gap-2 sm:gap-3">
               <Image
                 src="/logo.png"
-                alt="Hello eSIMs Logo"
-                width={72}
-                height={72}
-                className="object-contain flex-shrink-0 -my-2"
+                alt="hello esims Logo"
+                width={40}
+                height={40}
+                className="object-contain flex-shrink-0"
                 priority
               />
-              <span className="text-xl sm:text-2xl font-bold text-gray-800 truncate">Hello eSIMs</span>
+              <span className="text-lg sm:text-2xl font-bold text-gray-800 truncate">hello esims</span>
             </Link>
           </div>
           
@@ -178,7 +157,7 @@ export function Header({ lng }: HeaderProps) {
             <UserMenu lng={lng} />
 
             {/* 语言切换 - 客户端交互版本 */}
-            <div className="relative" ref={languageDropdownRef}>
+            <div className="relative">
               <button
                 onClick={() => setIsLanguageDropdownOpen(!isLanguageDropdownOpen)}
                 className="flex items-center space-x-2 px-3 py-2 text-sm font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50 rounded-md transition-colors"
@@ -201,34 +180,30 @@ export function Header({ lng }: HeaderProps) {
                 </svg>
               </button>
               
-              <div
-                className={`absolute top-full right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 border border-gray-200 z-50 transition-all duration-300 ease-in-out ${
-                  isLanguageDropdownOpen
-                    ? 'opacity-100 translate-y-0 pointer-events-auto'
-                    : 'opacity-0 -translate-y-2 pointer-events-none'
-                }`}
-              >
-                {languageLinks.map((lang) => (
-                  <Link 
-                    key={lang.code} 
-                    href={lang.href} 
-                    className="flex items-center px-4 py-3 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
-                    onClick={() => setIsLanguageDropdownOpen(false)}
-                  >
-                    <Image 
-                      src={lang.flag} 
-                      alt={`${lang.nameEn} flag`}
-                      width={20} 
-                      height={15} 
-                      className="mr-3 rounded-sm"
-                    />
-                    <div className="flex flex-col">
-                      <span className="font-medium">{lang.name}</span>
-                      <span className="text-xs text-gray-500">{lang.nameEn}</span>
-                    </div>
-                  </Link>
-                ))}
-              </div>
+              {isLanguageDropdownOpen && (
+                <div className="absolute top-full right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 border border-gray-200 z-50">
+                  {languageLinks.map((lang) => (
+                    <Link 
+                      key={lang.code} 
+                      href={lang.href} 
+                      className="flex items-center px-4 py-3 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
+                      onClick={() => setIsLanguageDropdownOpen(false)}
+                    >
+                      <Image 
+                        src={lang.flag} 
+                        alt={`${lang.nameEn} flag`}
+                        width={20} 
+                        height={15} 
+                        className="mr-3 rounded-sm"
+                      />
+                      <div className="flex flex-col">
+                        <span className="font-medium">{lang.name}</span>
+                        <span className="text-xs text-gray-500">{lang.nameEn}</span>
+                      </div>
+                    </Link>
+                  ))}
+                </div>
+              )}
             </div>
           </nav>
           

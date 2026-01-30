@@ -25,13 +25,7 @@ const getTextContent = (node: unknown): string => {
 
 export function MarkdownRenderer({ markdown, headings, className, widgetMap }: MarkdownRendererProps) {
   const resolvedHeadings = headings ?? extractHeadings(markdown)
-  // Create a mapping from heading text to id to ensure consistency between server and client
-  const headingIdMap = new Map<string, string>()
-  resolvedHeadings.forEach((heading) => {
-    headingIdMap.set(heading.text, heading.id)
-  })
-  
-  // Fallback slugger for headings not in the map (shouldn't happen if headings are provided)
+  // Create a fresh slugger per render to avoid StrictMode double-render drift.
   const slugger = createSlugger()
 
   useEffect(() => {
@@ -50,15 +44,13 @@ export function MarkdownRenderer({ markdown, headings, className, widgetMap }: M
       components={{
         h2({ ...props }) {
           const text = getTextContent(props.children)
-          // Use the id from headings map if available, otherwise generate one
-          const id = headingIdMap.get(text) ?? slugger(text)
+          const id = slugger(text)
           const className = [props.className, 'scroll-mt-24'].filter(Boolean).join(' ')
           return <h2 id={id} {...props} className={className} />
         },
         h3({ ...props }) {
           const text = getTextContent(props.children)
-          // Use the id from headings map if available, otherwise generate one
-          const id = headingIdMap.get(text) ?? slugger(text)
+          const id = slugger(text)
           const className = [props.className, 'scroll-mt-24'].filter(Boolean).join(' ')
           return <h3 id={id} {...props} className={className} />
         },

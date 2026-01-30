@@ -26,8 +26,6 @@ export function PillarLayout({
   widget,
   showToc = true,
 }: PillarLayoutProps) {
-  const hasToc = showToc && headings.length > 0
-
   return (
     <main className="min-h-screen bg-gray-50">
       <div className="container mx-auto px-4 py-10">
@@ -41,20 +39,21 @@ export function PillarLayout({
             {post.excerpt && <p className="text-lg text-gray-600">{post.excerpt}</p>}
           </header>
 
-          <div className="grid grid-cols-1 gap-8 lg:grid-cols-[260px_1fr] lg:items-start">
+          {(() => {
+            const hasToc = showToc && headings.length > 0
+            return (
+            <div className={hasToc ? "grid grid-cols-1 gap-8 lg:flex lg:items-start lg:gap-8" : "grid grid-cols-1 gap-8"}>
             {hasToc ? (
-              <aside className="hidden lg:block lg:sticky lg:top-24 lg:self-start">
-                <div className="max-h-[calc(100vh-6rem)] overflow-auto">
+              <aside className="hidden lg:block lg:w-[260px] lg:shrink-0 lg:sticky lg:top-24">
+                <div className="lg:max-h-[calc(100vh-6rem)] lg:overflow-auto">
                   <Toc headings={headings} title={tocTitle} />
                 </div>
               </aside>
-            ) : (
-              <div className="hidden lg:block" />
-            )}
+            ) : null}
 
-            <div className="space-y-8">
+            <div className="space-y-8 lg:flex-1">
               {hasToc ? (
-                <div className="lg:hidden sticky top-20 z-20">
+                <div className="lg:hidden">
                   <details className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
                     <summary className="cursor-pointer text-sm font-semibold text-gray-700">
                       {tocTitle}
@@ -102,6 +101,8 @@ export function PillarLayout({
               )}
             </div>
           </div>
+          )
+          })()}
         </article>
       </div>
     </main>

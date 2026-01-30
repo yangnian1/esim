@@ -9,7 +9,7 @@ const translations: Record<string, Record<string, string>> = {
     subtitle: 'You can contact our support team 24/7 and 365 days per year.',
     description: 'Simply send a message to our email or talk with us via online chat:',
     email_label: 'Email',
-    email_value: 'contact@helloesims.com',
+    email_value: '[email protected]',
     chat_label: 'Chat',
     chat_description: 'Just click the purple pop-up in the bottom right hand corner of our website.',
     whatsapp_label: 'WhatsApp 24/7',
@@ -24,7 +24,7 @@ const translations: Record<string, Record<string, string>> = {
     subtitle: 'Bạn có thể liên hệ với đội ngũ hỗ trợ của chúng tôi 24/7 và 365 ngày mỗi năm.',
     description: 'Chỉ cần gửi tin nhắn đến email của chúng tôi hoặc trò chuyện với chúng tôi qua chat trực tuyến:',
     email_label: 'Email',
-    email_value: 'contact@helloesims.com',
+    email_value: '[email protected]',
     chat_label: 'Chat',
     chat_description: 'Chỉ cần nhấp vào cửa sổ bật lên màu tím ở góc dưới bên phải của trang web của chúng tôi.',
     whatsapp_label: 'WhatsApp 24/7',
@@ -39,7 +39,7 @@ const translations: Record<string, Record<string, string>> = {
     subtitle: 'Sie können unser Support-Team 24/7 und 365 Tage im Jahr kontaktieren.',
     description: 'Senden Sie einfach eine Nachricht an unsere E-Mail oder sprechen Sie mit uns über den Online-Chat:',
     email_label: 'E-Mail',
-    email_value: 'contact@helloesims.com',
+    email_value: '[email protected]',
     chat_label: 'Chat',
     chat_description: 'Klicken Sie einfach auf das lila Pop-up in der unteren rechten Ecke unserer Website.',
     whatsapp_label: 'WhatsApp 24/7',
@@ -54,7 +54,7 @@ const translations: Record<string, Record<string, string>> = {
     subtitle: '您可以全年 365 天、每天 24 小时联系我们的支持团队。',
     description: '只需发送邮件或通过在线聊天与我们联系：',
     email_label: '邮箱',
-    email_value: 'contact@helloesims.com',
+    email_value: '[email protected]',
     chat_label: '在线聊天',
     chat_description: '只需点击我们网站右下角的紫色弹窗。',
     whatsapp_label: 'WhatsApp 24/7',
@@ -125,7 +125,7 @@ export default function ContactUsPage({ params }: { params: Promise<{ lng: strin
                 {t('email_label')}
               </h3>
               <a
-                href="mailto:contact@helloesims.com"
+                href="mailto:[email protected]"
                 className="text-blue-600 hover:text-blue-800 text-center block break-all"
               >
                 {t('email_value')}
@@ -165,6 +165,29 @@ export default function ContactUsPage({ params }: { params: Promise<{ lng: strin
               >
                 {t('whatsapp_value')}
               </a>
+            </div>
+          </div>
+
+          {/* 总部地址 */}
+          <div className="bg-white rounded-lg shadow-md p-8">
+            <h2 className="text-2xl font-bold text-gray-900 mb-4">
+              {t('office_title')}
+            </h2>
+            <div className="flex items-start">
+              <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mr-4 flex-shrink-0">
+                <svg className="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+              </div>
+              <div>
+                <p className="text-lg font-semibold text-gray-900 mb-2">
+                  {t('company_name')}
+                </p>
+                <p className="text-gray-700 leading-relaxed">
+                  {t('office_address')}
+                </p>
+              </div>
             </div>
           </div>
         </div>
