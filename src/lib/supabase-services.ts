@@ -1,5 +1,5 @@
 import { supabase, extractLocalized, handleSupabaseError } from './supabase'
-import type { LocalizedProduct, LocalizedBlogPost, Database, ContentBlock, BlogPostMeta } from '@/types/supabase'
+import type { LocalizedProduct, LocalizedBlogPost, Database, BlogPostMeta } from '@/types/supabase'
 import type { RealtimeChannel, SupabaseClient } from '@supabase/supabase-js'
 
 type EsimProduct = Database['public']['Tables']['esim_products']['Row']
@@ -205,28 +205,15 @@ export async function getBlogPosts(options: {
       const seoMeta = (post.seo_meta as Record<string, unknown>) || {}
       const localizedSeo = (seoMeta[locale] || seoMeta['en'] || {}) as Record<string, string>
 
-      // 处理内容：支持新的块级结构和旧格式（向后兼容）
-      const contentData = post.content as Record<string, unknown>
-      let localizedContent: ContentBlock[] | string = ''
-      
-      if (contentData && typeof contentData === 'object') {
-        const localeContent = contentData[locale] || contentData['en']
-        if (Array.isArray(localeContent)) {
-          localizedContent = localeContent as ContentBlock[]
-        } else if (typeof localeContent === 'string') {
-          localizedContent = localeContent
-        } else {
-          localizedContent = extractLocalized<string>(contentData as Record<string, string>, locale) || ''
-        }
-      } else {
-        localizedContent = extractLocalized<string>(post.content as Record<string, string>, locale) || ''
-      }
+      // 获取 published_content（已发布内容）
+      const publishedContent = post.published_content as Record<string, string> | null
+      const body = publishedContent?.[locale] || publishedContent?.['en'] || ''
 
       return {
         id: post.id,
         slug: post.slug,
         title: extractLocalized<string>(post.title as Record<string, string>, locale) || '',
-        content: localizedContent,
+        body,
         excerpt: extractLocalized<string>(post.excerpt as Record<string, string>, locale) || null,
         tags: (post.tags as string[]) || [],
         author_id: post.author_id,
@@ -299,28 +286,18 @@ export async function getBlogPostBySlug(
     const seoMeta = (post.seo_meta as Record<string, unknown>) || {}
     const localizedSeo = (seoMeta[locale] || seoMeta['en'] || {}) as Record<string, string>
 
-    // 处理内容：支持新的块级结构和旧格式（向后兼容）
-    const contentData = post.content as Record<string, unknown>
-    let localizedContent: ContentBlock[] | string = ''
+    // 根据预览模式选择内容源
+    // 预览模式使用 source_content，正常模式使用 published_content
+    const contentSource = allowDraft 
+      ? (post.source_content as Record<string, string> | null)
+      : (post.published_content as Record<string, string> | null)
     
-    if (contentData && typeof contentData === 'object') {
-      const localeContent = contentData[locale] || contentData['en']
-      
-      // 如果是数组，说明是新格式（块级结构）
-      if (Array.isArray(localeContent)) {
-        localizedContent = localeContent as ContentBlock[]
-      } 
-      // 如果是字符串，说明是旧格式
-      else if (typeof localeContent === 'string') {
-        localizedContent = localeContent
-      }
-      // 如果都没有，尝试提取字符串
-      else {
-        localizedContent = extractLocalized<string>(contentData as Record<string, string>, locale) || ''
-      }
-    } else {
-      // 向后兼容：如果 content 是字符串格式
-      localizedContent = extractLocalized<string>(post.content as Record<string, string>, locale) || ''
+    // 按语言获取内容，如果缺失则返回 null（触发 404）
+    const body = contentSource?.[locale] || contentSource?.['en'] || null
+    
+    // 如果内容缺失，返回错误
+    if (!body) {
+      return { data: null, error: `Content not available for locale: ${locale}` }
     }
 
     // 处理元数据
@@ -330,7 +307,7 @@ export async function getBlogPostBySlug(
       id: post.id,
       slug: post.slug,
       title: extractLocalized<string>(post.title as Record<string, string>, locale) || '',
-      content: localizedContent,
+      body,
       excerpt: extractLocalized<string>(post.excerpt as Record<string, string>, locale) || null,
       tags: (post.tags as string[]) || [],
       author_id: post.author_id,
@@ -373,28 +350,15 @@ export function subscribeToBlogPosts(
           const seoMeta = (post.seo_meta as Record<string, unknown>) || {}
           const localizedSeo = (seoMeta[locale] || seoMeta['en'] || {}) as Record<string, string>
 
-          // 处理内容：支持新的块级结构和旧格式（向后兼容）
-          const contentData = post.content as Record<string, unknown>
-          let localizedContent: ContentBlock[] | string = ''
-          
-          if (contentData && typeof contentData === 'object') {
-            const localeContent = contentData[locale] || contentData['en']
-            if (Array.isArray(localeContent)) {
-              localizedContent = localeContent as ContentBlock[]
-            } else if (typeof localeContent === 'string') {
-              localizedContent = localeContent
-            } else {
-              localizedContent = extractLocalized<string>(contentData as Record<string, string>, locale) || ''
-            }
-          } else {
-            localizedContent = extractLocalized<string>(post.content as Record<string, string>, locale) || ''
-          }
+          // 获取 published_content（已发布内容）
+          const publishedContent = post.published_content as Record<string, string> | null
+          const body = publishedContent?.[locale] || publishedContent?.['en'] || ''
 
           const localizedPost: LocalizedBlogPost = {
             id: post.id,
             slug: post.slug,
             title: extractLocalized<string>(post.title as Record<string, string>, locale) || '',
-            content: localizedContent,
+            body,
             excerpt: extractLocalized<string>(post.excerpt as Record<string, string>, locale) || null,
             tags: (post.tags as string[]) || [],
             author_id: post.author_id,

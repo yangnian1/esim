@@ -1,13 +1,13 @@
 import { BlogFeaturedImage } from '@/components/BlogFeaturedImage'
-import { MarkdownRenderer } from '@/components/markdown/MarkdownRenderer'
+import { MdxRenderer } from '@/components/mdx/MdxRenderer'
 import type { LocalizedBlogPost } from '@/types/supabase'
 
 type BlogLayoutProps = {
   post: LocalizedBlogPost
-  markdown: string
+  mdxSource: string
 }
 
-export function BlogLayout({ post, markdown }: BlogLayoutProps) {
+export async function BlogLayout({ post, mdxSource }: BlogLayoutProps) {
   return (
     <main className="min-h-screen bg-gray-50">
       <div className="container mx-auto px-4 py-10">
@@ -22,7 +22,7 @@ export function BlogLayout({ post, markdown }: BlogLayoutProps) {
           </header>
 
           <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
-            <MarkdownRenderer markdown={markdown} className="prose prose-lg max-w-none" />
+            <MdxRenderer source={mdxSource} className="prose prose-lg max-w-none" />
           </div>
         </article>
       </div>

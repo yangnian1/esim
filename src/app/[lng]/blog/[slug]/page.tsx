@@ -1,10 +1,8 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
-import type { ContentBlock } from '@/types/supabase'
 import { getCurrentUserServer, createServerClient } from '@/lib/supabase-server'
 import { getPostBySlug, getTurkeyPlans } from '@/lib/blog'
 import { extractFaqSection, extractHeadings } from '@/lib/markdown'
-import { BlogContentRenderer } from '@/components/BlogContentRenderer'
 import { BlogLayout } from '@/components/blog/BlogLayout'
 import { PillarLayout } from '@/components/blog/PillarLayout'
 import { TurkeyPlansWidget } from '@/components/blog/TurkeyPlansWidget'
@@ -149,8 +147,9 @@ export default async function BlogDetailPage({ params, searchParams }: BlogDetai
 
   // 从 Supabase 获取博客文章
   // 如果是预览模式且已授权，使用服务端客户端
+  // 预览模式会读取 source_content，正常模式读取 published_content
   const { data: post, error } = await getPostBySlug(lng, slug, {
-    allowDraft,
+    allowDraft: isPreviewMode && isAuthorized,
     client: isPreviewMode && isAuthorized ? serverClient : undefined,
   })
 
@@ -201,33 +200,20 @@ export default async function BlogDetailPage({ params, searchParams }: BlogDetai
     notFound()
   }
 
-  // 处理内容：判断是新格式（块级结构）还是旧格式（字符串）
-  const isBlockContent = Array.isArray(post.content)
-  const contentBlocks = isBlockContent ? (post.content as ContentBlock[]) : null
-  const contentString = !isBlockContent ? (post.content as string) : null
+  // 处理内容：body 是 MDX 字符串
+  const mdxSource = post.body || ''
+  
+  // 如果内容为空，返回 404
+  if (!mdxSource) {
+    notFound()
+  }
+
   const metaData = post.meta_data as Record<string, unknown> | null
   const metaTemplate = metaData?.template
   const resolvedTemplate = metaTemplate === 'pillar' ? 'pillar' : 'blog'
   const tocEnabled = (metaData?.toc as { enabled?: boolean } | undefined)?.enabled !== false
 
-  if (contentBlocks && !contentString) {
-    return (
-      <main className="min-h-screen bg-gray-50">
-        <div className="container mx-auto px-4 py-10 max-w-4xl">
-          {isPreviewMode && isAuthorized && post.status === 'draft' && <PreviewBanner lng={lng} />}
-          <header className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm mb-8">
-            <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">{post.title}</h1>
-            {post.excerpt && <p className="text-lg text-gray-600">{post.excerpt}</p>}
-          </header>
-          <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
-            <BlogContentRenderer blocks={contentBlocks} />
-          </div>
-        </div>
-      </main>
-    )
-  }
-
-  const markdownSource = contentString || ''
+  const markdownSource = mdxSource
   const { content: contentWithoutFaq, faqs } = extractFaqSection(markdownSource)
   const headings = extractHeadings(contentWithoutFaq)
   const shouldLoadTurkeyPlans =
@@ -261,7 +247,7 @@ export default async function BlogDetailPage({ params, searchParams }: BlogDetai
     resolvedTemplate === 'pillar' ? (
       <PillarLayout
         post={post}
-        markdown={contentWithoutFaq}
+        mdxSource={contentWithoutFaq}
         headings={headings}
         faqs={faqs}
         tocTitle={t('toc_title')}
@@ -274,7 +260,7 @@ export default async function BlogDetailPage({ params, searchParams }: BlogDetai
         }
       />
     ) : (
-      <BlogLayout post={post} markdown={markdownSource} />
+      <BlogLayout post={post} mdxSource={markdownSource} />
     )
 
   return (

@@ -3,11 +3,11 @@ import { BlogFeaturedImage } from '@/components/BlogFeaturedImage'
 import type { LocalizedBlogPost } from '@/types/supabase'
 import type { FaqItem, TocHeading } from '@/lib/markdown'
 import { Toc } from '@/components/markdown/Toc'
-import { MarkdownRenderer } from '@/components/markdown/MarkdownRenderer'
+import { MdxRenderer } from '@/components/mdx/MdxRenderer'
 
 type PillarLayoutProps = {
   post: LocalizedBlogPost
-  markdown: string
+  mdxSource: string
   headings: TocHeading[]
   faqs: FaqItem[]
   tocTitle: string
@@ -16,9 +16,9 @@ type PillarLayoutProps = {
   showToc?: boolean
 }
 
-export function PillarLayout({
+export async function PillarLayout({
   post,
-  markdown,
+  mdxSource,
   headings,
   faqs,
   tocTitle,
@@ -66,11 +66,10 @@ export function PillarLayout({
               ) : null}
 
               <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
-                <MarkdownRenderer
-                  markdown={markdown}
-                  headings={headings}
+                <MdxRenderer
+                  source={mdxSource}
                   className="prose prose-lg max-w-none"
-                  widgetMap={widget ? { TurkeyPlansWidget: widget } : undefined}
+                  components={widget ? { TurkeyPlansWidget: widget } : undefined}
                 />
               </div>
 
@@ -88,8 +87,8 @@ export function PillarLayout({
                         </summary>
                         {faq.answer && (
                           <div className="mt-3 text-sm text-gray-700">
-                            <MarkdownRenderer
-                              markdown={faq.answer}
+                            <MdxRenderer
+                              source={faq.answer}
                               className="prose prose-sm max-w-none"
                             />
                           </div>

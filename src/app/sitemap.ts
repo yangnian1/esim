@@ -49,6 +49,18 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         lastModified: new Date(),
         changeFrequency: 'weekly',
         priority: 0.7,
+      },
+      // 国家着陆页
+      {
+        url: `${baseUrl}/${lng}/esim-tuerkei`,
+        lastModified: new Date(),
+        changeFrequency: 'weekly',
+        priority: 0.9,
+        alternates: {
+          languages: Object.fromEntries(
+            languages.map(lang => [lang, `${baseUrl}/${lang}/esim-tuerkei`])
+          ),
+        },
       }
     )
   }

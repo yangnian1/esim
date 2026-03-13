@@ -53,8 +53,9 @@ export interface Database {
           id: number
           slug: string
           title: Json // JSONB: {"en": "...", "vi": "...", "de": "..."}
-          content: Json // JSONB: 块级结构数组 {"en": [...], "zh": [...], "de": [...]}
-          excerpt: Json | null
+          excerpt: Json | null // JSONB: {"en": "...", "vi": "...", "de": "..."}
+          source_content: Json | null // JSONB: {"en": "mdx string", "vi": "mdx string", "de": "mdx string"}
+          published_content: Json | null // JSONB: {"en": "mdx string", "vi": "mdx string", "de": "mdx string"}
           tags: Json // JSONB array
           author_id: string | null
           status: 'draft' | 'published' | 'archived'
@@ -69,8 +70,9 @@ export interface Database {
           id?: number
           slug: string
           title: Json
-          content: Json
           excerpt?: Json | null
+          source_content?: Json | null
+          published_content?: Json | null
           tags?: Json
           author_id?: string | null
           status?: 'draft' | 'published' | 'archived'
@@ -85,8 +87,9 @@ export interface Database {
           id?: number
           slug?: string
           title?: Json
-          content?: Json
           excerpt?: Json | null
+          source_content?: Json | null
+          published_content?: Json | null
           tags?: Json
           author_id?: string | null
           status?: 'draft' | 'published' | 'archived'
@@ -151,17 +154,6 @@ export interface LocalizedProduct {
   updated_at: string
 }
 
-// 内容块类型
-export type ContentBlock =
-  | { type: 'paragraph'; content: string }
-  | { type: 'image'; url: string; alt: string; caption?: string }
-  | { type: 'heading'; level: 1 | 2 | 3 | 4 | 5 | 6; content: string }
-  | { type: 'table'; headers: string[]; rows: string[][] }
-  | { type: 'list'; ordered: boolean; items: string[] }
-  | { type: 'quote'; content: string; author?: string }
-  | { type: 'code'; language?: string; content: string }
-  | { type: 'divider' }
-
 // 文章元数据
 export type BlogPostMeta = {
   reading_time?: number
@@ -181,7 +173,7 @@ export interface LocalizedBlogPost {
   id: number
   slug: string
   title: string // 已提取的本地化标题
-  content: ContentBlock[] | string // 块级结构数组或旧格式的字符串（向后兼容）
+  body: string // MDX 字符串内容
   excerpt: string | null
   tags: string[]
   author_id: string | null

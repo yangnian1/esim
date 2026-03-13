@@ -27,6 +27,11 @@ const translations: Record<string, Record<string, string>> = {
     instant_activation_desc: 'Scan the QR code and get connected immediately. No physical SIM needed.',
     save_roaming_title: 'Save on Roaming',
     save_roaming_desc: 'Affordable local rates. Say goodbye to expensive roaming fees.',
+    popular_destinations: 'Popular Destinations',
+    popular_destinations_desc: 'Find the best eSIM plans for your next trip.',
+    turkey_title: 'eSIM Turkey',
+    turkey_desc: 'Compare Turkey eSIM plans for 7–30 days and get online right after landing.',
+    view_plans: 'View Plans',
   },
   zh: {
     title: '全球 eSIM 服务',
@@ -49,6 +54,11 @@ const translations: Record<string, Record<string, string>> = {
     instant_activation_desc: '扫描二维码即可立即连接。无需实体 SIM 卡。',
     save_roaming_title: '节省漫游费',
     save_roaming_desc: '实惠的本地费率。告别昂贵的漫游费用。',
+    popular_destinations: '热门目的地',
+    popular_destinations_desc: '为您的下一次旅行找到最佳 eSIM 套餐。',
+    turkey_title: '土耳其 eSIM',
+    turkey_desc: '比较土耳其 7–30 天 eSIM 套餐，落地即上网。',
+    view_plans: '查看套餐',
   },
   de: {
     title: 'Globaler eSIM-Service',
@@ -71,6 +81,11 @@ const translations: Record<string, Record<string, string>> = {
     instant_activation_desc: 'QR-Code scannen und sofort verbinden. Keine physische SIM erforderlich.',
     save_roaming_title: 'Roaming sparen',
     save_roaming_desc: 'Günstige lokale Tarife. Verabschieden Sie sich von teuren Roaming-Gebühren.',
+    popular_destinations: 'Beliebte Reiseziele',
+    popular_destinations_desc: 'Finden Sie die besten eSIM-Tarife für Ihre nächste Reise.',
+    turkey_title: 'eSIM Türkei',
+    turkey_desc: 'Vergleichen Sie eSIM-Tarife für die Türkei (7–30 Tage) und gehen Sie direkt nach der Landung online.',
+    view_plans: 'Tarife ansehen',
   },
 }
 
@@ -285,8 +300,46 @@ export default async function Home({ params }: { params: Promise<{ lng: string }
         </div>
       </section>
 
-      {/* Blog Section */}
+      {/* Popular Destinations Section */}
       <section className="py-20 bg-white border-t border-blue-50">
+        <div className="container mx-auto px-4">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl md:text-4xl font-bold text-[#0C4A6E] mb-4">{t('popular_destinations')}</h2>
+            <div className="w-24 h-1 bg-[#F97316] mx-auto rounded-full"></div>
+            <p className="text-gray-500 mt-4 max-w-2xl mx-auto">{t('popular_destinations_desc')}</p>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 max-w-5xl mx-auto">
+            {/* Turkey */}
+            <Link
+              href={`/${lng}/esim-tuerkei`}
+              className="group relative bg-gradient-to-br from-red-50 to-white rounded-2xl border border-red-100 p-6 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 overflow-hidden"
+            >
+              <div className="flex items-center gap-4 mb-4">
+                <span className="text-4xl">🇹🇷</span>
+                <h3 className="text-xl font-bold text-[#0C4A6E] group-hover:text-[#0EA5E9] transition-colors">
+                  {t('turkey_title')}
+                </h3>
+              </div>
+              <p className="text-gray-600 text-sm mb-4 leading-relaxed">
+                {t('turkey_desc')}
+              </p>
+              <span className="inline-flex items-center text-sm font-semibold text-[#0EA5E9] group-hover:text-[#F97316] transition-colors">
+                {t('view_plans')}
+                <svg className="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                </svg>
+              </span>
+            </Link>
+
+            {/* Placeholder for future destinations - can be removed or replaced */}
+            {/* 未来可以在这里添加更多国家，例如：日本、泰国、美国等 */}
+          </div>
+        </div>
+      </section>
+
+      {/* Blog Section */}
+      <section className="py-20 bg-[#F0F9FF] border-t border-blue-50">
         <div className="container mx-auto px-4 text-center">
           <h2 className="text-3xl font-bold mb-6 text-[#0C4A6E]">{lng === 'zh' ? '最新资讯' : 'Latest News'}</h2>
           <p className="text-gray-500 mb-10 text-lg">{lng === 'zh' ? '文章内容即将上线' : 'Articles coming soon'}</p>
