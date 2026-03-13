@@ -1,6 +1,8 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  // Next.js 16 默认使用 Turbopack，显式声明以兼容旧 webpack 配置
+  turbopack: {},
   images: {
     remotePatterns: [
       // 第三方图片资源

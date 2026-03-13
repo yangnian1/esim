@@ -118,7 +118,6 @@ export default async function BlogDetailPage({ params, searchParams }: BlogDetai
 
   // 检查是否为预览模式
   const isPreviewMode = preview === 'true'
-  let allowDraft = false
   let isAuthorized = false
 
   // 如果是预览模式，检查用户权限
@@ -138,7 +137,6 @@ export default async function BlogDetailPage({ params, searchParams }: BlogDetai
         const userId = String(user.id)
         const authorId = String(postForAuth.author_id)
         if (userId === authorId) {
-          allowDraft = true
           isAuthorized = true
         }
       }

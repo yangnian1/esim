@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import Image from 'next/image'
 import { Suspense } from 'react'
 import { getProducts } from '@/lib/supabase-services'
 import { ProductImage } from '@/components/ProductImage'
@@ -230,10 +231,13 @@ export default async function Home({ params }: { params: Promise<{ lng: string }
       <section className="relative text-white py-32 overflow-hidden">
         {/* Background Image with Overlay */}
         <div className="absolute inset-0 z-0">
-          <img
+          <Image
             src="/images/hero_bg.png"
             alt="Global eSIM Travel Connectivity"
             className="w-full h-full object-cover"
+            fill
+            sizes="100vw"
+            priority
           />
           <div className="absolute inset-0 bg-gradient-to-r from-blue-900/90 to-blue-800/75 mix-blend-multiply"></div>
         </div>

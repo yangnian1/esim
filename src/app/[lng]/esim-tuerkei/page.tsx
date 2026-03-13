@@ -318,7 +318,7 @@ export default function EsimTuerkeiPage() {
                   href="/de/blog/esim-tuerkei-gesperrt/"
                   className="text-amber-800 hover:text-amber-900 font-medium underline transition-colors"
                 >
-                  Mehr zum Thema „gesperrt?" lesen →
+                  Mehr zum Thema &bdquo;gesperrt?&ldquo; lesen →
                 </Link>
               </p>
             </div>

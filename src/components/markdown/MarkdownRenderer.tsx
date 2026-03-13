@@ -55,6 +55,7 @@ export function MarkdownRenderer({ markdown, className, widgetMap }: MarkdownRen
           return <h3 id={id} {...props} className={className} />
         },
         img({ ...props }) {
+          // eslint-disable-next-line jsx-a11y/alt-text, @next/next/no-img-element
           return <img {...props} className="rounded-lg shadow-sm" loading="lazy" />
         },
         a({ ...props }) {
