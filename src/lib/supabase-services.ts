@@ -481,3 +481,56 @@ export async function getPublishedLandingPages(): Promise<{
     return { data: [], error: handleSupabaseError(error) }
   }
 }
+
+/** 首页「热门目的地」用：某个语种下已发布的落地页 + 国家名 */
+export async function getLandingPagesForLocale(
+  locale: string
+): Promise<{
+  data: { slug: string; h1: string; intro: string | null; countryName: string | null }[]
+  error: string | null
+}> {
+  try {
+    const nowIso = new Date().toISOString()
+    const { data, error } = await supabase
+      .from('landing_pages')
+      .select('slug, h1, intro, countries(name_en, name_de, name_zh)')
+      .eq('locale', locale)
+      .eq('status', 'published')
+      .not('published_at', 'is', null)
+      .lte('published_at', nowIso)
+      .order('published_at', { ascending: false })
+
+    if (error) return { data: [], error: handleSupabaseError(error) }
+
+    type Row = {
+      slug: string
+      h1: string
+      intro: string | null
+      countries: { name_en: string; name_de: string | null; name_zh: string | null } | null
+    }
+
+    const rows = (data ?? []) as unknown as Row[]
+    return {
+      data: rows.map((row) => {
+        const c = row.countries
+        // countries 表存了各语种国家名，用它做卡片标题比 h1 简洁
+        const countryName = c
+          ? locale === 'de'
+            ? c.name_de || c.name_en
+            : locale === 'zh'
+              ? c.name_zh || c.name_en
+              : c.name_en
+          : null
+        return {
+          slug: row.slug.replace(/^\/+/, ''),
+          h1: row.h1,
+          intro: row.intro,
+          countryName,
+        }
+      }),
+      error: null,
+    }
+  } catch (error) {
+    return { data: [], error: handleSupabaseError(error) }
+  }
+}

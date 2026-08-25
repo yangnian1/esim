@@ -2,13 +2,16 @@ import type { Metadata } from 'next'
 import { buildPageMetadata } from '@/lib/seo'
 import Link from 'next/link'
 import { Suspense } from 'react'
-import { getProducts } from '@/lib/supabase-services'
+import { getProducts, getLandingPagesForLocale } from '@/lib/supabase-services'
 import { ProductImage } from '@/components/ProductImage'
-import { Globe, Zap, Wallet } from 'lucide-react'
+import { Globe, Zap, Wallet, MapPin } from 'lucide-react'
 
 // 静态翻译映射
 const translations: Record<string, Record<string, string>> = {
   en: {
+    destinations_title: 'Popular Destinations',
+    destinations_desc: 'Country guides with plan comparisons, activation steps and FAQs.',
+    destinations_cta: 'View guide',
     title: 'Global eSIM Service',
     subtitle: 'Stay connected worldwide with our reliable eSIM solutions',
     hero_text: 'Welcome to the future of mobile connectivity',
@@ -31,6 +34,9 @@ const translations: Record<string, Record<string, string>> = {
     save_roaming_desc: 'Affordable local rates. Say goodbye to expensive roaming fees.',
   },
   zh: {
+    destinations_title: '热门目的地',
+    destinations_desc: '分国家的选购指南：套餐对比、激活步骤与常见问题。',
+    destinations_cta: '查看指南',
     title: '全球 eSIM 服务',
     subtitle: '使用我们可靠的 eSIM 解决方案保持全球连接',
     hero_text: '欢迎来到移动连接的未来',
@@ -53,6 +59,9 @@ const translations: Record<string, Record<string, string>> = {
     save_roaming_desc: '实惠的本地费率。告别昂贵的漫游费用。',
   },
   de: {
+    destinations_title: 'Beliebte Reiseziele',
+    destinations_desc: 'Länder-Ratgeber mit Tarifvergleich, Aktivierung und häufigen Fragen.',
+    destinations_cta: 'Zum Ratgeber',
     title: 'Globaler eSIM-Service',
     subtitle: 'Bleiben Sie weltweit mit unseren zuverlässigen eSIM-Lösungen verbunden',
     hero_text: 'Willkommen in der Zukunft der mobilen Konnektivität',
@@ -235,6 +244,60 @@ export async function generateMetadata({
   return buildPageMetadata({ lng, path: (l) => `/${l}`, copy: SEO_COPY })
 }
 
+/**
+ * 热门目的地：指向程序化落地页的站内入口。
+ *
+ * 落地页是这个站商业价值最高的一类页面（"eSIM Türkei" 这类头部词），
+ * 但它只出现在 sitemap 里的话就是**孤儿页** —— sitemap 只帮助「被发现」，
+ * 站内链接才传递权重、才表明这个页面重要。所以入口放在首页而不是页脚。
+ *
+ * 数据来自 landing_pages，新增一个国家的落地页会自动出现在这里，不用改代码。
+ * 当前语种没有任何落地页时整块不渲染，避免出现空标题。
+ */
+async function Destinations({ lng }: { lng: string }) {
+  const t = (key: string) => translations[lng]?.[key] || translations['en']?.[key] || key
+  const { data: pages } = await getLandingPagesForLocale(lng)
+
+  if (pages.length === 0) return null
+
+  return (
+    <section className="py-20 bg-white border-t border-blue-50">
+      <div className="container mx-auto px-4">
+        <div className="text-center mb-12">
+          <h2 className="text-3xl md:text-4xl font-bold text-[#0C4A6E] mb-4">
+            {t('destinations_title')}
+          </h2>
+          <div className="w-24 h-1 bg-[#F97316] mx-auto rounded-full"></div>
+          <p className="text-gray-500 mt-4 max-w-2xl mx-auto">{t('destinations_desc')}</p>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-5xl mx-auto">
+          {pages.map((page) => (
+            <Link
+              key={page.slug}
+              href={`/${lng}/${page.slug}`}
+              className="group rounded-2xl border border-gray-200 bg-white p-6 shadow-sm hover:border-[#0EA5E9] hover:shadow-md transition-all flex flex-col"
+            >
+              <div className="flex items-center gap-2 mb-3">
+                <MapPin className="w-5 h-5 text-[#0EA5E9]" />
+                <h3 className="text-lg font-bold text-[#0C4A6E]">
+                  {page.countryName ?? page.h1}
+                </h3>
+              </div>
+              {page.intro && (
+                <p className="text-sm text-gray-600 flex-grow line-clamp-3">{page.intro}</p>
+              )}
+              <span className="mt-4 text-sm font-medium text-[#0EA5E9] group-hover:underline">
+                {t('destinations_cta')} →
+              </span>
+            </Link>
+          ))}
+        </div>
+      </div>
+    </section>
+  )
+}
+
 export default async function Home({ params }: { params: Promise<{ lng: string }> }) {
   const { lng } = await params
   const t = (key: string) => translations[lng]?.[key] || translations['en']?.[key] || key
@@ -299,6 +362,11 @@ export default async function Home({ params }: { params: Promise<{ lng: string }
           </div>
         </div>
       </section>
+
+      {/* Popular Destinations —— 落地页的站内入口，放在产品之前保证权重 */}
+      <Suspense fallback={null}>
+        <Destinations lng={lng} />
+      </Suspense>
 
       {/* Products Section */}
       <section className="py-24">
