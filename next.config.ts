@@ -4,6 +4,11 @@ const nextConfig: NextConfig = {
   // Next.js 16 默认使用 Turbopack，显式声明以兼容下面那段旧 webpack 配置。
   // 删掉这一行 `npm run build` 会直接失败（Turbopack 拒绝在有 webpack 配置时静默运行）。
   turbopack: {},
+  experimental: {
+    // 根布局是顶层动态段 app/[lng]/layout.tsx，URL 没匹配上时 Next 拿不到 lng，
+    // 普通的 not-found.tsx 渲染不出来。开这个才能用 app/global-not-found.tsx。
+    globalNotFound: true,
+  },
   images: {
     remotePatterns: [
       // 第三方图片资源
