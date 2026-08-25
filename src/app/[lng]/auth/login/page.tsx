@@ -170,15 +170,7 @@ export default function LoginPage({ params }: { params: Promise<{ lng: string }>
             </button>
           </form>
 
-          <div className="mt-6 text-center text-sm text-gray-600">
-            {t('no_account')}{' '}
-            <Link
-              href={`/${lng}/auth/register`}
-              className="text-blue-600 hover:text-blue-800 font-medium"
-            >
-              {t('register_link')}
-            </Link>
-          </div>
+          {/* 公开注册已关闭，账号由后台统一创建，这里不再放注册入口 */}
         </div>
       </div>
     </main>

@@ -1,289 +1,58 @@
-import Link from 'next/link'
 import { notFound } from 'next/navigation'
-import { getCurrentUserServer, createServerClient } from '@/lib/supabase-server'
-import { getPostBySlug, getTurkeyPlans } from '@/lib/blog'
-import { extractFaqSection, extractHeadings } from '@/lib/markdown'
-import { BlogLayout } from '@/components/blog/BlogLayout'
-import { PillarLayout } from '@/components/blog/PillarLayout'
-import { TurkeyPlansWidget } from '@/components/blog/TurkeyPlansWidget'
-import { PreviewBanner } from '@/components/PreviewBanner'
+import type { Metadata } from 'next'
+import { getPostBySlug, getPublishedPosts } from '@/lib/blog'
+import { languages, fallbackLng } from '@/i18n/settings'
+import { BlogArticle } from '@/components/blog/BlogArticle'
+import { getBlogDetailT } from './translations'
 
-// 静态翻译映射
-const translations: Record<string, Record<string, string>> = {
-  en: {
-    blog: 'Blog',
-    back_to_blog: 'Back to Blog',
-    published_on: 'Published on',
-    tags: 'Tags',
-    not_found: 'Article not found',
-    error: 'Failed to load article',
-    preview_mode: 'Preview Mode',
-    preview_notice: 'This is a draft preview. Other users cannot see this article.',
-    unauthorized: 'You do not have permission to preview this article',
-    login_required: 'Please log in to preview drafts',
-    toc_title: 'Contents',
-    faq_title: 'FAQ',
-  },
-  vi: {
-    blog: 'Blog',
-    back_to_blog: 'Quay lại Blog',
-    published_on: 'Xuất bản vào',
-    tags: 'Thẻ',
-    not_found: 'Không tìm thấy bài viết',
-    error: 'Không thể tải bài viết',
-    preview_mode: 'Chế độ xem trước',
-    preview_notice: 'Đây là bản xem trước bản nháp. Người dùng khác không thể thấy bài viết này.',
-    unauthorized: 'Bạn không có quyền xem trước bài viết này',
-    login_required: 'Vui lòng đăng nhập để xem trước bản nháp',
-  },
-  de: {
-    blog: 'Blog',
-    back_to_blog: 'Zurück zum Blog',
-    published_on: 'Veröffentlicht am',
-    tags: 'Tags',
-    not_found: 'Artikel nicht gefunden',
-    error: 'Artikel konnte nicht geladen werden',
-    preview_mode: 'Vorschaumodus',
-    preview_notice: 'Dies ist eine Entwurfsvorschau. Andere Benutzer können diesen Artikel nicht sehen.',
-    unauthorized: 'Sie haben keine Berechtigung, diesen Artikel in der Vorschau anzuzeigen',
-    login_required: 'Bitte melden Sie sich an, um Entwürfe in der Vorschau anzuzeigen',
-  },
-  zh: {
-    blog: '博客',
-    back_to_blog: '返回博客',
-    published_on: '发布于',
-    tags: '标签',
-    not_found: '文章未找到',
-    error: '加载失败',
-    preview_mode: '预览模式',
-    preview_notice: '这是草稿预览，其他用户无法看到此文章',
-    unauthorized: '您没有权限预览此文章',
-    login_required: '请先登录以预览草稿',
-  },
-  fr: {
-    blog: 'Blog',
-    back_to_blog: 'Retour au Blog',
-    published_on: 'Publié le',
-    tags: 'Tags',
-    not_found: 'Article non trouvé',
-    error: 'Échec du chargement de l\'article',
-    preview_mode: 'Mode Aperçu',
-    preview_notice: 'Ceci est un aperçu de brouillon. Les autres utilisateurs ne peuvent pas voir cet article.',
-    unauthorized: 'Vous n\'avez pas la permission de prévisualiser cet article',
-    login_required: 'Veuillez vous connecter pour prévisualiser les brouillons',
-  },
-  es: {
-    blog: 'Blog',
-    back_to_blog: 'Volver al Blog',
-    published_on: 'Publicado el',
-    tags: 'Etiquetas',
-    not_found: 'Artículo no encontrado',
-    error: 'Error al cargar el artículo',
-    preview_mode: 'Modo Vista Previa',
-    preview_notice: 'Esta es una vista previa del borrador. Otros usuarios no pueden ver este artículo.',
-    unauthorized: 'No tiene permiso para previsualizar este artículo',
-    login_required: 'Por favor, inicie sesión para previsualizar borradores',
-  },
-  ja: {
-    blog: 'ブログ',
-    back_to_blog: 'ブログに戻る',
-    published_on: '公開日',
-    tags: 'タグ',
-    not_found: '記事が見つかりません',
-    error: '記事の読み込みに失敗しました',
-    preview_mode: 'プレビューモード',
-    preview_notice: 'これは下書きプレビューです。他のユーザーはこの記事を見ることができません。',
-    unauthorized: 'この記事をプレビューする権限がありません',
-    login_required: '下書きをプレビューするにはログインしてください',
-  },
-}
-
-// 格式化日期
-
+// 这一页是全站 SEO 的主力，必须能被静态生成 + ISR。
+// 注意：这里绝对不能读 searchParams —— 一旦读了，Next 会把整页降级成纯动态 SSR，
+// 每个爬虫请求都要现打一次 Supabase，同时 /api/revalidate 也会变成空转
+// （revalidatePath 对动态页没有可失效的缓存）。
+// 草稿预览因此被拆到了独立路由 ./preview/。
+export const revalidate = 3600
 
 interface BlogDetailProps {
   params: Promise<{
     lng: string
     slug: string
   }>
-  searchParams: Promise<{
-    preview?: string
-  }>
 }
 
-export default async function BlogDetailPage({ params, searchParams }: BlogDetailProps) {
+export async function generateStaticParams() {
+  // 服务层默认 pageSize=10，照默认取只会预渲染最新 10 篇
+  const { data } = await getPublishedPosts(fallbackLng, 1000)
+  const slugs = (data ?? [])
+    .map((post) => post.slug.replace(/^\/+/, ''))
+    .filter((slug) => slug.length > 0)
+
+  return languages.flatMap((lng) => slugs.map((slug) => ({ lng, slug })))
+}
+
+export default async function BlogDetailPage({ params }: BlogDetailProps) {
   const { lng, slug } = await params
-  const { preview } = await searchParams
-  const t = (key: string) => translations[lng]?.[key] || translations['en']?.[key] || key
+  const t = getBlogDetailT(lng)
 
-  // 检查是否为预览模式
-  const isPreviewMode = preview === 'true'
-  let isAuthorized = false
+  const { data: post } = await getPostBySlug(lng, slug)
 
-  // 如果是预览模式，检查用户权限
-  let serverClient: Awaited<ReturnType<typeof createServerClient>> | undefined = undefined
-  if (isPreviewMode) {
-    // 创建服务端客户端以获取用户会话
-    serverClient = await createServerClient()
-    const { user } = await getCurrentUserServer()
-    if (user) {
-      // 先获取文章（包括草稿）以检查作者，使用服务端客户端
-      const { data: postForAuth } = await getPostBySlug(lng, slug, {
-        allowDraft: true,
-        client: serverClient,
-      })
-      // 比较用户ID和作者ID（确保类型一致，都转换为字符串比较）
-      if (postForAuth && postForAuth.author_id) {
-        const userId = String(user.id)
-        const authorId = String(postForAuth.author_id)
-        if (userId === authorId) {
-          isAuthorized = true
-        }
-      }
-    }
-  }
-
-  // 从 Supabase 获取博客文章
-  // 如果是预览模式且已授权，使用服务端客户端
-  // 预览模式会读取 source_content，正常模式读取 published_content
-  const { data: post, error } = await getPostBySlug(lng, slug, {
-    allowDraft: isPreviewMode && isAuthorized,
-    client: isPreviewMode && isAuthorized ? serverClient : undefined,
-  })
-
-  // 如果是预览模式但未授权
-  if (isPreviewMode && !isAuthorized) {
-    return (
-      <main className="min-h-screen bg-gray-50">
-        <div className="container mx-auto px-4 py-12">
-          <div className="max-w-4xl mx-auto text-center">
-            <h1 className="text-2xl font-bold text-red-500 mb-4">{t('unauthorized')}</h1>
-            <p className="text-gray-600 mb-8">
-              {error || t('login_required')}
-            </p>
-            <Link
-              href={`/${lng}/blog`}
-              className="inline-flex items-center text-purple-600 hover:text-purple-800 transition-colors"
-            >
-              ← {t('back_to_blog')}
-            </Link>
-          </div>
-        </div>
-      </main>
-    )
-  }
-
-  // 处理错误情况
-  if (error) {
-    return (
-      <main className="min-h-screen bg-gray-50">
-        <div className="container mx-auto px-4 py-12">
-          <div className="max-w-4xl mx-auto text-center">
-            <h1 className="text-2xl font-bold text-red-500 mb-4">{t('error')}</h1>
-            <p className="text-gray-600 mb-8">{error}</p>
-            <Link
-              href={`/${lng}/blog`}
-              className="inline-flex items-center text-purple-600 hover:text-purple-800 transition-colors"
-            >
-              ← {t('back_to_blog')}
-            </Link>
-          </div>
-        </div>
-      </main>
-    )
-  }
-
-  // 文章不存在
-  if (!post) {
+  // 取不到就是 404。以前这里返回的是一个带「加载失败」文案的 200 页面，
+  // 那对搜索引擎是 soft 404：状态码说「有内容」，页面上却什么都没有，
+  // 会被判定成低质量页并连累整站。
+  if (!post || !post.body) {
     notFound()
   }
 
-  // 处理内容：body 是 MDX 字符串
-  const mdxSource = post.body || ''
-  
-  // 如果内容为空，返回 404
-  if (!mdxSource) {
-    notFound()
-  }
-
-  const metaData = post.meta_data as Record<string, unknown> | null
-  const metaTemplate = metaData?.template
-  const resolvedTemplate = metaTemplate === 'pillar' ? 'pillar' : 'blog'
-  const tocEnabled = (metaData?.toc as { enabled?: boolean } | undefined)?.enabled !== false
-
-  const markdownSource = mdxSource
-  const { content: contentWithoutFaq, faqs } = extractFaqSection(markdownSource)
-  const headings = extractHeadings(contentWithoutFaq)
-  const shouldLoadTurkeyPlans =
-    resolvedTemplate === 'pillar' && markdownSource.includes('{{TurkeyPlansWidget}}')
-  const turkeyPlansResult = shouldLoadTurkeyPlans ? await getTurkeyPlans(lng, 6) : null
-
-  const stripMarkdown = (value: string) =>
-    value
-      .replace(/\[(.*?)\]\(.*?\)/g, '$1')
-      .replace(/[`*_>#-]/g, '')
-      .replace(/\s+/g, ' ')
-      .trim()
-
-  const faqJsonLd =
-    faqs.length > 0
-      ? JSON.stringify({
-          '@context': 'https://schema.org',
-          '@type': 'FAQPage',
-          mainEntity: faqs.map((faq) => ({
-            '@type': 'Question',
-            name: faq.question,
-            acceptedAnswer: {
-              '@type': 'Answer',
-              text: stripMarkdown(faq.answer || ''),
-            },
-          })),
-        })
-      : null
-
-  const layout =
-    resolvedTemplate === 'pillar' ? (
-      <PillarLayout
-        post={post}
-        mdxSource={contentWithoutFaq}
-        headings={headings}
-        faqs={faqs}
-        tocTitle={t('toc_title')}
-        faqTitle={t('faq_title')}
-        showToc={tocEnabled}
-        widget={
-          shouldLoadTurkeyPlans && turkeyPlansResult ? (
-            <TurkeyPlansWidget products={turkeyPlansResult.data} lng={lng} />
-          ) : undefined
-        }
-      />
-    ) : (
-      <BlogLayout post={post} mdxSource={markdownSource} />
-    )
-
-  return (
-    <>
-      {faqJsonLd ? (
-        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: faqJsonLd }} />
-      ) : null}
-      {isPreviewMode && isAuthorized && post.status === 'draft' ? (
-        <div className="container mx-auto px-4 pt-6">
-          <PreviewBanner lng={lng} />
-        </div>
-      ) : null}
-      {layout}
-    </>
-  )
+  return <BlogArticle post={post} lng={lng} tocTitle={t('toc_title')} faqTitle={t('faq_title')} />
 }
 
-export async function generateMetadata({ params }: BlogDetailProps) {
+export async function generateMetadata({ params }: BlogDetailProps): Promise<Metadata> {
   const { lng, slug } = await params
-
   const { data: post } = await getPostBySlug(lng, slug)
 
   if (!post) {
     return {
-      title: 'Article Not Found',
+      title: getBlogDetailT(lng)('not_found'),
+      robots: { index: false, follow: false },
     }
   }
 
@@ -293,6 +62,8 @@ export async function generateMetadata({ params }: BlogDetailProps) {
   const title = seo?.title || post.seo_title || post.title
   const description = seo?.description || post.seo_description || post.excerpt || ''
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, '')
+  const normalizedSlug = post.slug.replace(/^\/+/, '')
+
   const canonicalFromMeta = seo?.canonical
   const canonical = canonicalFromMeta
     ? canonicalFromMeta.startsWith('http')
@@ -301,12 +72,33 @@ export async function generateMetadata({ params }: BlogDetailProps) {
         ? `${siteUrl}/${canonicalFromMeta.replace(/^\//, '')}`
         : canonicalFromMeta
     : siteUrl
-      ? `${siteUrl}/${lng}/blog/${post.slug}`
+      ? `${siteUrl}/${lng}/blog/${normalizedSlug}`
       : undefined
+
+  // 同一篇文章的各语种版本互相声明 hreflang，x-default 指向 en。
+  // 缺了这个，小语种页面会被当成 en 版的重复内容，正是这个站最不能出的问题。
+  const alternates: Metadata['alternates'] = {}
+  if (canonical) alternates.canonical = canonical
+  if (siteUrl) {
+    alternates.languages = {
+      ...Object.fromEntries(
+        languages.map((l) => [l, `${siteUrl}/${l}/blog/${normalizedSlug}`])
+      ),
+      'x-default': `${siteUrl}/${fallbackLng}/blog/${normalizedSlug}`,
+    }
+  }
 
   return {
     title,
     description,
-    alternates: canonical ? { canonical } : undefined,
+    alternates: Object.keys(alternates).length > 0 ? alternates : undefined,
+    openGraph: {
+      type: 'article',
+      title,
+      description,
+      url: canonical,
+      publishedTime: post.published_at || undefined,
+      images: post.featured_image ? [post.featured_image] : undefined,
+    },
   }
 }

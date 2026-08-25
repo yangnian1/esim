@@ -1,8 +1,11 @@
+import type { Metadata } from 'next'
+import { buildPageMetadata } from '@/lib/seo'
 import Link from 'next/link'
 import { getPublishedPosts } from '@/lib/blog'
 import { Suspense } from 'react'
 import { BlogCardImage } from '@/components/BlogCardImage'
 import { createServerClient, getCurrentUserServer } from '@/lib/supabase-server'
+import { languages } from '@/i18n/settings'
 
 // 静态翻译映射
 const translations: Record<string, Record<string, string>> = {
@@ -102,7 +105,7 @@ async function BlogPostsList({ lng }: { lng: string }) {
         return (
         <Link
           key={post.id}
-          href={`/${lng}/blog/${postSlug}${isDraft ? '?preview=true' : ''}`}
+          href={`/${lng}/blog/${postSlug}${isDraft ? '/preview' : ''}`}
           className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow flex flex-col block"
         >
           {/* 文章头图 */}
@@ -170,6 +173,34 @@ function BlogLoading({ lng }: { lng: string }) {
 }
 
 // 主页面组件
+
+// 逐语种的 title/description。
+// 这几个页面原来一个 metadata 都没有，全部继承根 layout 那句英文标题，
+// 12 个 URL 共用一个 title —— 对多语种站是致命的。
+const SEO_COPY = {
+  de: {
+    title: 'eSIM Ratgeber für Reisende',
+    description: 'Anleitungen und Tipps rund um eSIM: Aktivierung, Tarifwahl und Reiseziele.',
+  },
+  en: {
+    title: 'eSIM Guides for Travellers',
+    description: 'Guides and tips around eSIM: activation, choosing a plan and destinations.',
+  },
+  zh: {
+    title: 'eSIM 旅行指南',
+    description: 'eSIM 相关的教程与技巧：激活、选套餐、目的地攻略。',
+  },
+}
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ lng: string }>
+}): Promise<Metadata> {
+  const { lng } = await params
+  return buildPageMetadata({ lng, path: (l) => `/${l}/blog`, copy: SEO_COPY })
+}
+
 export default async function BlogPage({ params }: { params: Promise<{ lng: string }> }) {
   const { lng } = await params
 
@@ -186,13 +217,10 @@ export default async function BlogPage({ params }: { params: Promise<{ lng: stri
 }
 
 // 生成静态参数（用于静态生成）
+// 以 i18n/settings.ts 的 languages 为准，不要硬编码 —— 硬编码会生成
+// 未启用语种（如 vi）的孤儿页面：middleware 不认它，sitemap 也不收录。
 export async function generateStaticParams() {
-  return [
-    { lng: 'en' },
-    { lng: 'vi' },
-    { lng: 'de' },
-    { lng: 'zh' },
-  ]
+  return languages.map((lng) => ({ lng }))
 }
 
 // ISR: 每小时重新验证一次数据（3600秒）

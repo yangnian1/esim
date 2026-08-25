@@ -3,6 +3,75 @@ import type { LocalizedProduct, LocalizedBlogPost, Database, BlogPostMeta } from
 import type { RealtimeChannel, SupabaseClient } from '@supabase/supabase-js'
 
 type EsimProduct = Database['public']['Tables']['esim_products']['Row']
+type ProductLocalizationRow = Database['public']['Tables']['product_localizations']['Row']
+
+/**
+ * 带 join 的产品行。直接 cast 成 EsimProduct 会把 join 出来的字段抹掉。
+ * product_localizations 已按当前语种过滤，所以数组里最多一条。
+ */
+type EsimProductWithProvider = EsimProduct & {
+  providers: { name: string } | null
+  product_localizations: Pick<
+    ProductLocalizationRow,
+    'name' | 'short_description' | 'long_description' | 'seo_title' | 'seo_description' | 'usp_bullets'
+  >[] | null
+}
+
+/** 产品查询统一的 select，两处列表/详情必须一致，否则详情页会少字段 */
+const PRODUCT_SELECT =
+  '*, providers(name), product_localizations(name, short_description, long_description, seo_title, seo_description, usp_bullets)'
+
+/**
+ * 把一行产品拍平成 LocalizedProduct。
+ *
+ * 文案优先级：product_localizations（关系表，可在后台逐语种编辑）
+ *   → esim_products.description 这个 JSONB（老数据）
+ *   → 英文兜底。
+ * 名称同理：没有本地化名时退回 esim_products.name（英文原名）。
+ */
+function toLocalizedProduct(product: EsimProductWithProvider, locale: string): LocalizedProduct {
+  const loc = product.product_localizations?.[0] ?? null
+  const jsonbDescription =
+    extractLocalized<string>(product.description as Record<string, string>, locale) || ''
+
+  return {
+    id: product.id,
+    name: loc?.name || product.name,
+    description: loc?.long_description || jsonbDescription,
+    short_description: loc?.short_description ?? null,
+    seo_title: loc?.seo_title ?? null,
+    seo_description: loc?.seo_description ?? null,
+    usp_bullets: Array.isArray(loc?.usp_bullets) ? (loc.usp_bullets as string[]) : [],
+    price: product.price,
+    stock: product.stock,
+    country: product.country,
+    validity_days: product.validity_days,
+    data_label: product.data_label,
+    image_url: product.image_url,
+    affiliate_url: product.affiliate_url,
+    provider_id: product.provider_id,
+    provider_name: product.providers?.name ?? null,
+    availability_status: product.availability_status,
+    currency: product.currency,
+    created_at: product.created_at,
+    updated_at: product.updated_at,
+  }
+}
+
+/**
+ * blog_posts 里没有 SEO 专用列 —— 旧类型文件声明过一个，但线上库并不存在，
+ * 所以这里过去读到的永远是 undefined，SEO 标题/描述实际从未生效。
+ * 真实位置是 meta_data.seo（博客详情页的 generateMetadata 读的也是它）。
+ */
+function readPostSeo(post: BlogPost, locale: string): Record<string, string> {
+  const meta = (post.meta_data as Record<string, unknown> | null) || {}
+  const seo = (meta.seo as Record<string, unknown> | undefined) || {}
+  // 兼容两种写法：{ title, description } 或 { en: { title }, de: { title } }
+  const perLocale = (seo[locale] ?? seo['en']) as Record<string, string> | undefined
+  if (perLocale && typeof perLocale === 'object') return perLocale
+  return seo as Record<string, string>
+}
+
 type BlogPost = Database['public']['Tables']['blog_posts']['Row']
 
 // ==================== Product Services ====================
@@ -21,8 +90,13 @@ export async function getProducts(options: {
   try {
     let query = supabase
       .from('esim_products')
-      .select('*', { count: 'exact' })
-      .gte('stock', 0) // 只显示有库存的产品
+      .select(PRODUCT_SELECT, { count: 'exact' })
+      // 联盟模式：只展示上架的推荐位。
+      // 用库里既有的 availability_status，不要另造 is_active 布尔列。
+      // 允许的值只有 active / paused / sold_out / archived（库里有 CHECK 约束）。
+      .eq('availability_status', 'active')
+      // 只取当前语种的本地化文案。这是对嵌套表的过滤，不会把没有该语种的产品整行剔掉。
+      .eq('product_localizations.locale', locale)
       .order('created_at', { ascending: false })
 
     // 按国家筛选
@@ -46,18 +120,9 @@ export async function getProducts(options: {
     }
 
     // 本地化数据
-    const localizedData: LocalizedProduct[] = (data as EsimProduct[]).map((product) => ({
-      id: product.id,
-      name: product.name,
-      description: extractLocalized<string>(product.description as Record<string, string>, locale) || '',
-      price: product.price,
-      stock: product.stock,
-      country: product.country,
-      validity_days: product.validity_days,
-      image_url: product.image_url,
-      created_at: product.created_at,
-      updated_at: product.updated_at,
-    }))
+    const localizedData: LocalizedProduct[] = (data as EsimProductWithProvider[]).map((product) =>
+      toLocalizedProduct(product, locale)
+    )
 
     return { data: localizedData, error: null, total: count || 0 }
   } catch (error) {
@@ -75,8 +140,10 @@ export async function getProductById(
   try {
     const { data, error } = await supabase
       .from('esim_products')
-      .select('*')
+      .select(PRODUCT_SELECT)
       .eq('id', id)
+      // 同列表页：只取当前语种的本地化文案
+      .eq('product_localizations.locale', locale)
       .single()
 
     if (error) {
@@ -88,19 +155,7 @@ export async function getProductById(
     }
 
     // 本地化数据
-    const product = data as EsimProduct
-    const localizedData: LocalizedProduct = {
-      id: product.id,
-      name: product.name,
-      description: extractLocalized<string>(product.description as Record<string, string>, locale) || '',
-      price: product.price,
-      stock: product.stock,
-      country: product.country,
-      validity_days: product.validity_days,
-      image_url: product.image_url,
-      created_at: product.created_at,
-      updated_at: product.updated_at,
-    }
+    const localizedData = toLocalizedProduct(data as EsimProductWithProvider, locale)
 
     return { data: localizedData, error: null }
   } catch (error) {
@@ -126,20 +181,15 @@ export function subscribeToProducts(
       },
       (payload) => {
         if (payload.new) {
-          const product = payload.new as EsimProduct
-          const localizedProduct: LocalizedProduct = {
-            id: product.id,
-            name: product.name,
-            description: extractLocalized<string>(product.description as Record<string, string>, locale) || '',
-            price: product.price,
-            stock: product.stock,
-            country: product.country,
-            validity_days: product.validity_days,
-            image_url: product.image_url,
-            created_at: product.created_at,
-            updated_at: product.updated_at,
-          }
-          callback(localizedProduct, locale)
+          // realtime 推的是 esim_products 的原始行，没有 providers /
+          // product_localizations 的 join 结果，所以本地化名和联盟商名会退回原值。
+          // 需要完整数据的场景请重新走 getProductById。
+          const product = {
+            ...(payload.new as EsimProduct),
+            providers: null,
+            product_localizations: null,
+          } as EsimProductWithProvider
+          callback(toLocalizedProduct(product, locale), locale)
         }
       }
     )
@@ -202,8 +252,7 @@ export async function getBlogPosts(options: {
 
     // 本地化数据
     const localizedData: LocalizedBlogPost[] = (data as BlogPost[]).map((post) => {
-      const seoMeta = (post.seo_meta as Record<string, unknown>) || {}
-      const localizedSeo = (seoMeta[locale] || seoMeta['en'] || {}) as Record<string, string>
+      const localizedSeo = readPostSeo(post, locale)
 
       // 获取 published_content（已发布内容）
       const publishedContent = post.published_content as Record<string, string> | null
@@ -217,7 +266,7 @@ export async function getBlogPosts(options: {
         excerpt: extractLocalized<string>(post.excerpt as Record<string, string>, locale) || null,
         tags: (post.tags as string[]) || [],
         author_id: post.author_id,
-        status: post.status,
+        status: (post.status ?? 'draft') as LocalizedBlogPost['status'],
         published_at: post.published_at,
         featured_image: post.featured_image,
         meta_data: (post.meta_data as BlogPostMeta) || null,
@@ -283,8 +332,7 @@ export async function getBlogPostBySlug(
 
     // 本地化数据
     const post = data as BlogPost
-    const seoMeta = (post.seo_meta as Record<string, unknown>) || {}
-    const localizedSeo = (seoMeta[locale] || seoMeta['en'] || {}) as Record<string, string>
+    const localizedSeo = readPostSeo(post, locale)
 
     // 根据预览模式选择内容源
     // 预览模式使用 source_content，正常模式使用 published_content
@@ -311,7 +359,7 @@ export async function getBlogPostBySlug(
       excerpt: extractLocalized<string>(post.excerpt as Record<string, string>, locale) || null,
       tags: (post.tags as string[]) || [],
       author_id: post.author_id,
-      status: post.status,
+      status: (post.status ?? 'draft') as LocalizedBlogPost['status'],
       published_at: post.published_at,
       featured_image: post.featured_image,
       meta_data: metaData as BlogPostMeta | null,
@@ -347,8 +395,7 @@ export function subscribeToBlogPosts(
       (payload) => {
         if (payload.new) {
           const post = payload.new as BlogPost
-          const seoMeta = (post.seo_meta as Record<string, unknown>) || {}
-          const localizedSeo = (seoMeta[locale] || seoMeta['en'] || {}) as Record<string, string>
+          const localizedSeo = readPostSeo(post, locale)
 
           // 获取 published_content（已发布内容）
           const publishedContent = post.published_content as Record<string, string> | null
@@ -362,7 +409,7 @@ export function subscribeToBlogPosts(
             excerpt: extractLocalized<string>(post.excerpt as Record<string, string>, locale) || null,
             tags: (post.tags as string[]) || [],
             author_id: post.author_id,
-            status: post.status,
+            status: (post.status ?? 'draft') as LocalizedBlogPost['status'],
             published_at: post.published_at,
             featured_image: post.featured_image,
             meta_data: (post.meta_data as BlogPostMeta) || null,
@@ -376,4 +423,61 @@ export function subscribeToBlogPosts(
       }
     )
     .subscribe()
+}
+
+// ==================== Landing Page Services ====================
+
+type LandingPageRow = Database['public']['Tables']['landing_pages']['Row']
+
+/**
+ * 落地页是**按语种独立的行**（landing_pages.locale + slug 唯一），
+ * 不像 blog_posts 那样一个 slug 配一份多语言 JSONB。
+ * 好处是德语页可以先上线，英/中文没写就不生成 URL ——
+ * 不会出现「三个语种指向同一份德语内容」这种重复内容问题。
+ */
+export async function getLandingPage(
+  locale: string,
+  slug: string
+): Promise<{ data: LandingPageRow | null; error: string | null }> {
+  try {
+    const nowIso = new Date().toISOString()
+    const normalizedSlug = slug.replace(/^\/+/, '')
+
+    const { data, error } = await supabase
+      .from('landing_pages')
+      .select('*')
+      .eq('locale', locale)
+      .eq('slug', normalizedSlug)
+      .eq('status', 'published')
+      .not('published_at', 'is', null)
+      .lte('published_at', nowIso)
+      .maybeSingle()
+
+    if (error) return { data: null, error: handleSupabaseError(error) }
+    if (!data) return { data: null, error: 'Landing page not found' }
+    return { data: data as LandingPageRow, error: null }
+  } catch (error) {
+    return { data: null, error: handleSupabaseError(error) }
+  }
+}
+
+/** 已发布的全部落地页，供 generateStaticParams 和 sitemap 用 */
+export async function getPublishedLandingPages(): Promise<{
+  data: Pick<LandingPageRow, 'locale' | 'slug' | 'updated_at'>[]
+  error: string | null
+}> {
+  try {
+    const nowIso = new Date().toISOString()
+    const { data, error } = await supabase
+      .from('landing_pages')
+      .select('locale, slug, updated_at')
+      .eq('status', 'published')
+      .not('published_at', 'is', null)
+      .lte('published_at', nowIso)
+
+    if (error) return { data: [], error: handleSupabaseError(error) }
+    return { data: data ?? [], error: null }
+  } catch (error) {
+    return { data: [], error: handleSupabaseError(error) }
+  }
 }

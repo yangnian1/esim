@@ -1,7 +1,10 @@
+import type { Metadata } from 'next'
+import { buildPageMetadata } from '@/lib/seo'
 import Link from 'next/link'
 import { getProducts } from '@/lib/supabase-services'
 import { Suspense } from 'react'
 import { ProductImage } from '@/components/ProductImage'
+import { languages } from '@/i18n/settings'
 
 // 静态翻译映射
 const translations: Record<string, Record<string, string>> = {
@@ -63,11 +66,6 @@ const translations: Record<string, Record<string, string>> = {
 async function ProductsList({ lng }: { lng: string }) {
   const t = (key: string) => translations[lng]?.[key] || translations['en']?.[key] || key
 
-  // 记录页面生成时间（用于验证 ISR）
-  const buildTime = new Date().toISOString()
-  console.log(`[Products Page] Generated at: ${buildTime} (locale: ${lng})`)
-  console.log(`v1.0.0`)
-
   // 从 Supabase 获取产品数据
   const { data: products, error } = await getProducts({
     locale: lng,
@@ -93,11 +91,6 @@ async function ProductsList({ lng }: { lng: string }) {
 
   return (
     <>
-      {/* ISR 验证：页面生成时间 */}
-      <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded text-sm text-blue-800">
-        <strong>🕐 Page Generated:</strong> {buildTime} | <strong>Locale:</strong> {lng}
-      </div>
-
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {products.map((product) => (
         <div
@@ -138,7 +131,7 @@ async function ProductsList({ lng }: { lng: string }) {
               )}
               <div className="flex items-center justify-between text-sm">
                 <span className="text-gray-600">{t('stock')}:</span>
-                <span className={`font-medium ${product.stock > 0 ? 'text-green-600' : 'text-red-600'}`}>
+                <span className={`font-medium ${(product.stock ?? 0) > 0 ? 'text-green-600' : 'text-red-600'}`}>
                   {product.stock}
                 </span>
               </div>
@@ -179,6 +172,34 @@ function ProductsLoading({ lng }: { lng: string }) {
 }
 
 // 主页面组件
+
+// 逐语种的 title/description。
+// 这几个页面原来一个 metadata 都没有，全部继承根 layout 那句英文标题，
+// 12 个 URL 共用一个 title —— 对多语种站是致命的。
+const SEO_COPY = {
+  de: {
+    title: 'eSIM-Tarife im Vergleich',
+    description: 'Alle verfügbaren eSIM-Tarife im Überblick: Datenvolumen, Laufzeit und Preis auf einen Blick.',
+  },
+  en: {
+    title: 'eSIM Plans Compared',
+    description: 'All available eSIM plans at a glance: data volume, validity and price.',
+  },
+  zh: {
+    title: 'eSIM 套餐一览',
+    description: '所有在售 eSIM 套餐一览：流量、有效期与价格一目了然。',
+  },
+}
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ lng: string }>
+}): Promise<Metadata> {
+  const { lng } = await params
+  return buildPageMetadata({ lng, path: (l) => `/${l}/products`, copy: SEO_COPY })
+}
+
 export default async function ProductsPage({ params }: { params: Promise<{ lng: string }> }) {
   const { lng } = await params
   const t = (key: string) => translations[lng]?.[key] || translations['en']?.[key] || key
@@ -207,13 +228,10 @@ export default async function ProductsPage({ params }: { params: Promise<{ lng: 
 }
 
 // 生成静态参数（用于静态生成）
+// 以 i18n/settings.ts 的 languages 为准，不要硬编码 —— 硬编码会生成
+// 未启用语种（如 vi）的孤儿页面：middleware 不认它，sitemap 也不收录。
 export async function generateStaticParams() {
-  return [
-    { lng: 'en' },
-    { lng: 'vi' },
-    { lng: 'de' },
-    { lng: 'zh' },
-  ]
+  return languages.map((lng) => ({ lng }))
 }
 
 // ISR: 每小时重新验证一次数据（3600秒）

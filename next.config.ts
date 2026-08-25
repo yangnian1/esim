@@ -1,7 +1,8 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  // Next.js 16 默认使用 Turbopack，显式声明以兼容旧 webpack 配置
+  // Next.js 16 默认使用 Turbopack，显式声明以兼容下面那段旧 webpack 配置。
+  // 删掉这一行 `npm run build` 会直接失败（Turbopack 拒绝在有 webpack 配置时静默运行）。
   turbopack: {},
   images: {
     remotePatterns: [

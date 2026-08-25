@@ -1,7 +1,7 @@
+import { serialize } from 'next-mdx-remote/serialize'
 import { MDXRemote } from 'next-mdx-remote/rsc'
 import remarkGfm from 'remark-gfm'
-import type { ReactNode, HTMLAttributes, ImgHTMLAttributes, AnchorHTMLAttributes } from 'react'
-import Image from 'next/image'
+import type { ReactNode } from 'react'
 import { Figure } from '@/components/Figure'
 import { createSlugger } from '@/lib/markdown'
 
@@ -12,10 +12,6 @@ interface MdxRendererProps {
     TurkeyPlansWidget?: ReactNode
   }
 }
-
-type HeadingProps = HTMLAttributes<HTMLHeadingElement> & { children?: ReactNode }
-type ImgProps = ImgHTMLAttributes<HTMLImageElement>
-type AnchorProps = AnchorHTMLAttributes<HTMLAnchorElement>
 
 // MDX 组件映射（服务端组件）
 function createMdxComponents(turkeyPlansWidget?: ReactNode) {
@@ -33,22 +29,22 @@ function createMdxComponents(turkeyPlansWidget?: ReactNode) {
   
   return {
     Figure,
-    TurkeyPlansWidget: () => turkeyPlansWidget ?? null,
-    h2: ({ children, ...props }: HeadingProps) => {
+    // MDX 的 components map 要的是组件而不是节点，这里把传进来的已渲染节点包一层
+    TurkeyPlansWidget: () => <>{turkeyPlansWidget ?? null}</>,
+    h2: ({ children, ...props }: any) => {
       const text = getTextContent(children)
       const id = slugger(text)
       return <h2 id={id} className="scroll-mt-24" {...props}>{children}</h2>
     },
-    h3: ({ children, ...props }: HeadingProps) => {
+    h3: ({ children, ...props }: any) => {
       const text = getTextContent(children)
       const id = slugger(text)
       return <h3 id={id} className="scroll-mt-24" {...props}>{children}</h3>
     },
-    img: ({ src, alt, ...props }: ImgProps) => (
-      // eslint-disable-next-line @next/next/no-img-element
-      <img src={src} alt={alt ?? ''} {...props} className="rounded-lg shadow-sm" loading="lazy" />
+    img: ({ ...props }: any) => (
+      <img {...props} className="rounded-lg shadow-sm" loading="lazy" />
     ),
-    a: ({ href, ...props }: AnchorProps) => {
+    a: ({ href, ...props }: any) => {
       const isExternal = href?.startsWith('http')
       return (
         <a
@@ -64,19 +60,19 @@ function createMdxComponents(turkeyPlansWidget?: ReactNode) {
 
 export async function MdxRenderer({ source, className, components }: MdxRendererProps) {
   try {
+    // 序列化 MDX
+    const mdxSource = await serialize(source, {
+      parseFrontmatter: false,
+      mdxOptions: {
+        remarkPlugins: [remarkGfm],
+      },
+    })
+
     const mdxComponents = createMdxComponents(components?.TurkeyPlansWidget)
 
     return (
       <div className={className}>
-        <MDXRemote
-          source={source}
-          options={{
-            mdxOptions: {
-              remarkPlugins: [remarkGfm],
-            },
-          }}
-          components={mdxComponents}
-        />
+        <MDXRemote source={mdxSource} components={mdxComponents} />
       </div>
     )
   } catch (error) {

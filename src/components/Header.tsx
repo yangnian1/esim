@@ -21,42 +21,42 @@ const languageConfig: Record<string, { flag: string; name: string; nameEn: strin
 const translations: Record<string, Record<string, string>> = {
   en: {
     home: 'Home',
-    orders: 'Orders',
+    products: 'eSIM Plans',
     blog: 'Blog',
     about: 'About Us',
     contact: 'Contact Us'
   },
   zh: {
     home: '首页',
-    orders: '订单',
+    products: 'eSIM 套餐',
     blog: '博客',
     about: '关于我们',
     contact: '联系我们'
   },
   fr: {
     home: 'Accueil',
-    orders: 'Commandes',
+    products: 'Forfaits eSIM',
     blog: 'Blog',
     about: 'À Propos',
     contact: 'Contactez-nous'
   },
   de: {
     home: 'Startseite',
-    orders: 'Bestellungen',
+    products: 'eSIM-Tarife',
     blog: 'Blog',
     about: 'Über Uns',
     contact: 'Kontakt'
   },
   es: {
     home: 'Inicio',
-    orders: 'Pedidos',
+    products: 'Planes eSIM',
     blog: 'Blog',
     about: 'Acerca de',
     contact: 'Contáctanos'
   },
   ja: {
     home: 'ホーム',
-    orders: '注文',
+    products: 'eSIMプラン',
     blog: 'ブログ',
     about: '私たちについて',
     contact: 'お問い合わせ'
@@ -76,7 +76,7 @@ export function Header({ lng }: HeaderProps) {
   
   const navLinks = [
     { href: `/${lng}`, label: t('home') },
-    { href: `/${lng}/orders`, label: t('orders') },
+    { href: `/${lng}/products`, label: t('products') },
     { href: `/${lng}/blog`, label: t('blog') },
     { href: `/${lng}/about-us`, label: t('about') },
     { href: `/${lng}/contact-us`, label: t('contact') },
