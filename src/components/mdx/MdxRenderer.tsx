@@ -1,4 +1,3 @@
-import { serialize } from 'next-mdx-remote/serialize'
 import { MDXRemote } from 'next-mdx-remote/rsc'
 import remarkGfm from 'remark-gfm'
 import type { ReactNode } from 'react'
@@ -60,19 +59,22 @@ function createMdxComponents(turkeyPlansWidget?: ReactNode) {
 
 export async function MdxRenderer({ source, className, components }: MdxRendererProps) {
   try {
-    // 序列化 MDX
-    const mdxSource = await serialize(source, {
-      parseFrontmatter: false,
-      mdxOptions: {
-        remarkPlugins: [remarkGfm],
-      },
-    })
-
     const mdxComponents = createMdxComponents(components?.TurkeyPlansWidget)
 
+    // ⚠️ next-mdx-remote/rsc 的 MDXRemote 要的是**原始 Markdown 字符串**，它自己负责编译。
+    // 不要先用 pages router 那套 API 预编译再传进来 —— 两套不能混。
+    // 混用时 source 收到的是 { compiledSource, frontmatter, scope } 对象而不是字符串，
+    // 结果既不抛错也渲染不出任何内容：正文静默变成空白，只剩目录和 FAQ。
     return (
       <div className={className}>
-        <MDXRemote source={mdxSource} components={mdxComponents} />
+        <MDXRemote
+          source={source}
+          options={{
+            parseFrontmatter: false,
+            mdxOptions: { remarkPlugins: [remarkGfm] },
+          }}
+          components={mdxComponents}
+        />
       </div>
     )
   } catch (error) {
