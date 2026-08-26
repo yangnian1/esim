@@ -33,8 +33,13 @@ export async function BlogArticle({ post, lng, tocTitle, faqTitle }: BlogArticle
   const { content: contentWithoutFaq, faqs } = extractFaqSection(markdownSource)
   const headings = extractHeadings(contentWithoutFaq)
 
+  // 正文里出现 <TurkeyPlansWidget /> 才去查产品，避免每篇文章都白打一次数据库。
+  // 同时兼容历史写法 {{TurkeyPlansWidget}}（那种写法渲染不出组件，见 MdxRenderer 的注释，
+  // 但内容迁移完之前先让检测认它，免得漏加载）。
   const shouldLoadTurkeyPlans =
-    resolvedTemplate === 'pillar' && markdownSource.includes('{{TurkeyPlansWidget}}')
+    resolvedTemplate === 'pillar' &&
+    (markdownSource.includes('<TurkeyPlansWidget') ||
+      markdownSource.includes('{{TurkeyPlansWidget}}'))
   const turkeyPlansResult = shouldLoadTurkeyPlans ? await getTurkeyPlans(lng, 6) : null
 
   const faqJsonLd =

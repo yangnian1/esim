@@ -2,6 +2,7 @@ import { MDXRemote } from 'next-mdx-remote/rsc'
 import remarkGfm from 'remark-gfm'
 import type { ReactNode } from 'react'
 import { Figure } from '@/components/Figure'
+import { HubCta } from '@/components/mdx/HubCta'
 import { createSlugger } from '@/lib/markdown'
 
 interface MdxRendererProps {
@@ -28,6 +29,11 @@ function createMdxComponents(turkeyPlansWidget?: ReactNode) {
   
   return {
     Figure,
+    // 正文里可用的自定义组件。**必须用 JSX 语法**：<HubCta …/>、<TurkeyPlansWidget />。
+    // 不要用 {{Name}} —— 在 MDX 里那是 JS 表达式（对象字面量），渲染会抛错；
+    // 加反引号又会变成字面量代码块。历史内容里的 `{{TurkeyPlansWidget}}` 就是后者，
+    // 结果组件从未出现过，页面上只显示一段代码文字。
+    HubCta,
     // MDX 的 components map 要的是组件而不是节点，这里把传进来的已渲染节点包一层
     TurkeyPlansWidget: () => <>{turkeyPlansWidget ?? null}</>,
     h2: ({ children, ...props }: any) => {
