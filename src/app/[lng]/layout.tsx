@@ -4,7 +4,6 @@ import "../globals.css";
 import { languages } from '../../i18n/settings'
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
-import { AuthProvider } from "@/contexts/AuthContext";
 import { GoogleAnalytics } from "@/components/GoogleAnalytics";
 
 // const inter = Inter({ subsets: ['latin'] })
@@ -47,11 +46,9 @@ export default async function RootLayout({
     <html lang={lng} dir="ltr">
       <body className="antialiased font-sans">
         <GoogleAnalytics />
-        <AuthProvider>
           <Header lng={lng} />
           <main className="pt-16">{children}</main>
           <Footer lng={lng} />
-        </AuthProvider>
       </body>
     </html>
   );

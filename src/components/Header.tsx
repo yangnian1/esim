@@ -5,7 +5,6 @@ import Image from 'next/image'
 import { useState } from 'react'
 import { languages } from '@/i18n/settings'
 import { usePathname } from 'next/navigation'
-import { UserMenu } from './UserMenu'
 
 // 语言到国旗和名称的映射
 const languageConfig: Record<string, { flag: string; name: string; nameEn: string }> = {
@@ -154,7 +153,6 @@ export function Header({ lng }: HeaderProps) {
             ))}
 
             {/* 用户菜单 */}
-            <UserMenu lng={lng} />
 
             {/* 语言切换 - 客户端交互版本 */}
             <div className="relative">
@@ -209,7 +207,6 @@ export function Header({ lng }: HeaderProps) {
           
           {/* 移动端导航 */}
           <div className="md:hidden flex items-center gap-2">
-            <UserMenu lng={lng} />
             <button
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
               className="flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100"

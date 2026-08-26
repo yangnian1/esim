@@ -1,65 +1,44 @@
 import { NextRequest, NextResponse } from 'next/server'
 import acceptLanguage from 'accept-language'
 import { fallbackLng, languages, cookieName } from './i18n/settings'
-import { createServerClient } from '@supabase/ssr'
 
 acceptLanguage.languages(languages)
 
+/**
+ * 只做一件事：给没有语言前缀的路径补上语言前缀。
+ *
+ * 历史上它还负责用 @supabase/ssr 刷新会话 cookie —— 前台去掉登录功能后
+ * 那部分已经删掉了。删掉的直接收益：博客列表页不再需要读会话，可以静态化。
+ *
+ * ⚠️ 语言判定顺序不能改：cookie → Accept-Language → 兜底语种。
+ * cookie 优先是为了尊重用户手动切换过的语种。
+ */
 export const config = {
-  // matcher: '/:lng*'
-  // 排除静态资源：API路由、Next.js内部文件、图片文件、SEO文件等
-  matcher: ['/((?!api|_next/static|_next/image|assets|favicon.ico|sw.js|robots.txt|sitemap.xml|.+\\.(?:png|jpg|jpeg|gif|svg|ico|webp)$).*)']
+  // 排除静态资源、API 路由和 SEO 文件
+  matcher: [
+    '/((?!api|_next/static|_next/image|assets|favicon.ico|sw.js|robots.txt|sitemap.xml|.+\\.(?:png|jpg|jpeg|gif|svg|ico|webp)$).*)',
+  ],
 }
 
-export async function middleware(req: NextRequest) {
-  let response = NextResponse.next({
-    request: req,
-  })
+export function middleware(req: NextRequest) {
+  const response = NextResponse.next({ request: req })
 
-  // 创建 Supabase 客户端，用于刷新会话
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        getAll() {
-          return req.cookies.getAll()
-        },
-        setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value }) => req.cookies.set(name, value))
-          response = NextResponse.next({
-            request: req,
-          })
-          cookiesToSet.forEach(({ name, value, options }) =>
-            response.cookies.set(name, value, options)
-          )
-        },
-      },
-    }
-  )
-
-  // 刷新会话（如果存在）- 这会自动更新 cookies 中的 token
-  await supabase.auth.getUser()
-
-  // 处理语言逻辑
-  let lng
+  let lng: string | null = null
   if (req.cookies.has(cookieName)) lng = acceptLanguage.get(req.cookies.get(cookieName)?.value)
   if (!lng) lng = acceptLanguage.get(req.headers.get('Accept-Language'))
   if (!lng) lng = fallbackLng
 
-  // Redirect if lng in path is not supported
-  // 排除 SEO 文件和 Next.js 内部路径
   const excludePaths = ['/_next', '/api', '/robots.txt', '/sitemap.xml']
-  const shouldExclude = excludePaths.some(path => req.nextUrl.pathname.startsWith(path))
+  const shouldExclude = excludePaths.some((path) => req.nextUrl.pathname.startsWith(path))
 
   if (
-    !languages.some(loc => req.nextUrl.pathname.startsWith(`/${loc}`)) &&
+    !languages.some((loc) => req.nextUrl.pathname.startsWith(`/${loc}`)) &&
     !shouldExclude
   ) {
-    const redirectUrl = new URL(`/${lng}${req.nextUrl.pathname}`, req.url)
-    return NextResponse.redirect(redirectUrl)
+    return NextResponse.redirect(new URL(`/${lng}${req.nextUrl.pathname}`, req.url))
   }
 
+  // 记住用户实际浏览的语种，下次直接用
   if (req.headers.has('referer')) {
     const refererUrl = new URL(req.headers.get('referer') as string)
     const lngInReferer = languages.find((l) => refererUrl.pathname.startsWith(`/${l}`))
@@ -67,4 +46,4 @@ export async function middleware(req: NextRequest) {
   }
 
   return response
-} 
+}
