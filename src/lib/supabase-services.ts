@@ -1,4 +1,5 @@
 import { supabase, extractLocalized, handleSupabaseError } from './supabase'
+import { languages } from '@/i18n/settings'
 import type { LocalizedProduct, LocalizedBlogPost, Database, BlogPostMeta } from '@/types/supabase'
 import type { RealtimeChannel, SupabaseClient } from '@supabase/supabase-js'
 
@@ -340,8 +341,11 @@ export async function getBlogPostBySlug(
       ? (post.source_content as Record<string, string> | null)
       : (post.published_content as Record<string, string> | null)
     
-    // 按语言获取内容，如果缺失则返回 null（触发 404）
-    const body = contentSource?.[locale] || contentSource?.['en'] || null
+    // 按语言获取内容。**不回退到英文** ——
+    // 没有该语种的译文就不该有该语种的 URL。回退会让 /en/blog/xxx 用德语内容
+    // 或空字符串顶上，等于批量生产薄内容页，而且 hreflang 还会声称它是有效的语种版本。
+    // 这与落地页的原则一致：只让真实存在的 locale+slug 组合产生页面。
+    const body = contentSource?.[locale]?.trim() ? contentSource[locale] : null
     
     // 如果内容缺失，返回错误
     if (!body) {
@@ -528,6 +532,55 @@ export async function getLandingPagesForLocale(
           countryName,
         }
       }),
+      error: null,
+    }
+  } catch (error) {
+    return { data: [], error: handleSupabaseError(error) }
+  }
+}
+
+/**
+ * 每篇已发布文章**实际有内容的语种**。
+ *
+ * blog_posts 的译文存在一个 JSONB 里（title/content 按 locale 分键），
+ * 所以「这篇有没有英文版」只能看 published_content 里那个键有没有内容。
+ *
+ * sitemap、generateStaticParams、hreflang 都要用它 ——
+ * 三者必须一致，否则会出现「sitemap 里有但页面 404」或者
+ * 「hreflang 指向一个不存在的语种版本」。后者会让 Google 抓到 404，
+ * 反过来伤害整组页面。
+ */
+export async function getPublishedPostLocales(): Promise<{
+  data: { slug: string; locales: string[]; updated_at: string | null }[]
+  error: string | null
+}> {
+  try {
+    const nowIso = new Date().toISOString()
+    const { data, error } = await supabase
+      .from('blog_posts')
+      .select('slug, published_content, updated_at')
+      .eq('status', 'published')
+      .not('published_at', 'is', null)
+      .lte('published_at', nowIso)
+
+    if (error) return { data: [], error: handleSupabaseError(error) }
+
+    const rows = (data ?? []) as unknown as {
+      slug: string
+      published_content: Record<string, string> | null
+      updated_at: string | null
+    }[]
+
+    return {
+      data: rows
+        .map((row) => ({
+          slug: row.slug.replace(/^\/+/, ''),
+          locales: Object.entries(row.published_content ?? {})
+            .filter(([lng, body]) => languages.includes(lng) && String(body ?? '').trim().length > 0)
+            .map(([lng]) => lng),
+          updated_at: row.updated_at,
+        }))
+        .filter((row) => row.slug.length > 0 && row.locales.length > 0),
       error: null,
     }
   } catch (error) {

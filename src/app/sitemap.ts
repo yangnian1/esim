@@ -1,6 +1,6 @@
 import { MetadataRoute } from 'next'
 import { languages, fallbackLng } from '@/i18n/settings'
-import { getProducts, getBlogPosts, getPublishedLandingPages } from '@/lib/supabase-services'
+import { getProducts, getPublishedLandingPages, getPublishedPostLocales } from '@/lib/supabase-services'
 
 // sitemap 一次性取完，不能用服务层的默认分页
 // （getBlogPosts 默认 pageSize=10、getProducts 默认 20，
@@ -67,17 +67,25 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     }))
   )
 
-  const { data: posts } = await getBlogPosts({
-    locale: fallbackLng,
-    pageSize: SITEMAP_PAGE_SIZE,
-  })
-  const blogEntries: MetadataRoute.Sitemap = (posts ?? []).flatMap((post) =>
-    languages.map((lng) => ({
+  // 只收录**真正有该语种译文**的文章 URL。
+  // 以前这里是 languages × posts 的笛卡尔积，结果没有英文版的文章
+  // 也会生成 /en/blog/xxx —— 页面几乎是空的，却带着 hreflang 声称自己是有效的英文版。
+  const { data: postLocales } = await getPublishedPostLocales()
+  const blogEntries: MetadataRoute.Sitemap = (postLocales ?? []).flatMap((post) =>
+    post.locales.map((lng) => ({
       url: `${baseUrl}/${lng}/blog/${post.slug}`,
       lastModified: post.updated_at ? new Date(post.updated_at) : new Date(),
       changeFrequency: 'weekly' as const,
       priority: 0.7,
-      alternates: alternatesFor((l) => `/${l}/blog/${post.slug}`),
+      // hreflang 只列这篇文章真实存在的语种；只有一个语种时不输出
+      alternates:
+        post.locales.length > 1
+          ? {
+              languages: Object.fromEntries(
+                post.locales.map((l) => [l, `${baseUrl}/${l}/blog/${post.slug}`])
+              ),
+            }
+          : undefined,
     }))
   )
 

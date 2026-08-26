@@ -1,6 +1,7 @@
 import { notFound } from 'next/navigation'
 import type { Metadata } from 'next'
-import { getPostBySlug, getPublishedPosts } from '@/lib/blog'
+import { getPostBySlug } from '@/lib/blog'
+import { getPublishedPostLocales } from '@/lib/supabase-services'
 import { languages, fallbackLng } from '@/i18n/settings'
 import { BlogArticle } from '@/components/blog/BlogArticle'
 import { getBlogDetailT } from './translations'
@@ -20,13 +21,10 @@ interface BlogDetailProps {
 }
 
 export async function generateStaticParams() {
-  // 服务层默认 pageSize=10，照默认取只会预渲染最新 10 篇
-  const { data } = await getPublishedPosts(fallbackLng, 1000)
-  const slugs = (data ?? [])
-    .map((post) => post.slug.replace(/^\/+/, ''))
-    .filter((slug) => slug.length > 0)
-
-  return languages.flatMap((lng) => slugs.map((slug) => ({ lng, slug })))
+  // 只生成**真正有该语种译文**的组合，不做 languages × slugs 的笛卡尔积。
+  // 没有英文版的文章就不该有 /en/blog/xxx 这个 URL。
+  const { data } = await getPublishedPostLocales()
+  return (data ?? []).flatMap((post) => post.locales.map((lng) => ({ lng, slug: post.slug })))
 }
 
 export default async function BlogDetailPage({ params }: BlogDetailProps) {
@@ -75,16 +73,25 @@ export async function generateMetadata({ params }: BlogDetailProps): Promise<Met
       ? `${siteUrl}/${lng}/blog/${normalizedSlug}`
       : undefined
 
-  // 同一篇文章的各语种版本互相声明 hreflang，x-default 指向 en。
-  // 缺了这个，小语种页面会被当成 en 版的重复内容，正是这个站最不能出的问题。
+  // hreflang 只列这篇文章**真实存在**的语种版本。
+  // 把没有译文的语种也写进去，Google 抓过去只会拿到 404，反而伤害整组页面。
+  // 只有一个语种时干脆不输出 —— 一条 hreflang 指向自己没有意义。
   const alternates: Metadata['alternates'] = {}
   if (canonical) alternates.canonical = canonical
   if (siteUrl) {
-    alternates.languages = {
-      ...Object.fromEntries(
-        languages.map((l) => [l, `${siteUrl}/${l}/blog/${normalizedSlug}`])
-      ),
-      'x-default': `${siteUrl}/${fallbackLng}/blog/${normalizedSlug}`,
+    const { data: postLocales } = await getPublishedPostLocales()
+    const self = (postLocales ?? []).find((row) => row.slug === normalizedSlug)
+    const available = (self?.locales ?? []).filter((l) => languages.includes(l))
+    if (available.length > 1) {
+      alternates.languages = {
+        ...Object.fromEntries(
+          available.map((l) => [l, `${siteUrl}/${l}/blog/${normalizedSlug}`])
+        ),
+        // x-default 指向 en；没有英文版时退回该文章的第一个语种
+        'x-default': `${siteUrl}/${
+          available.includes(fallbackLng) ? fallbackLng : available[0]
+        }/blog/${normalizedSlug}`,
+      }
     }
   }
 
