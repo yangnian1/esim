@@ -9,7 +9,7 @@ import type { ReactNode } from 'react'
  * 灰色的 blockquote 和正文里其他引用长得一样，读者会直接略过。
  *
  * 每篇辐条文章都应该有一个，锚文本用枢纽页的目标关键词
- * （见根目录 SEO-STRUCTURE.md 第 4 节的内链规则）。
+ * （见 web/docs/SEO-STRUCTURE.md 第 4 节的内链规则）。
  *
  * 在 Markdown 正文里这样写：
  *
