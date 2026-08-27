@@ -10,6 +10,12 @@ const nextConfig: NextConfig = {
     globalNotFound: true,
   },
   images: {
+    // 默认的 deviceSizes 最大到 3840，但本站的配图原图最宽 1600 ——
+    // 请求比原图更大的尺寸只会把图拉伸放大，白白多下载字节。
+    // 按实际内容收窄档位：手机 → 平板 → 桌面 → 2x 屏。
+    deviceSizes: [640, 750, 828, 1080, 1200, 1600],
+    // 优先 AVIF，回退 WebP。同画质下 AVIF 通常比 WebP 再小 20% 左右
+    formats: ['image/avif', 'image/webp'],
     remotePatterns: [
       // 第三方图片资源
       {

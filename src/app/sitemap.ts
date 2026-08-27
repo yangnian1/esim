@@ -1,6 +1,11 @@
 import { MetadataRoute } from 'next'
 import { languages, fallbackLng } from '@/i18n/settings'
-import { getProducts, getPublishedLandingPages, getPublishedPostLocales } from '@/lib/supabase-services'
+import {
+  getProducts,
+  getPublishedLandingPages,
+  getPublishedPostLocales,
+  getPublishedPostImages,
+} from '@/lib/supabase-services'
 
 // sitemap 一次性取完，不能用服务层的默认分页
 // （getBlogPosts 默认 pageSize=10、getProducts 默认 20，
@@ -71,9 +76,22 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // 以前这里是 languages × posts 的笛卡尔积，结果没有英文版的文章
   // 也会生成 /en/blog/xxx —— 页面几乎是空的，却带着 hreflang 声称自己是有效的英文版。
   const { data: postLocales } = await getPublishedPostLocales()
+
+  // 图片站点地图：Google 说它能帮忙发现「可能遗漏的图片」，
+  // 而图片搜索对内容站是一条独立的流量来源。
+  const { data: postImages } = await getPublishedPostImages()
+  const imagesByKey = new Map<string, string[]>()
+  for (const row of postImages ?? []) {
+    imagesByKey.set(
+      `${row.locale}:${row.slug}`,
+      row.images.map((img) => img.url)
+    )
+  }
+
   const blogEntries: MetadataRoute.Sitemap = (postLocales ?? []).flatMap((post) =>
     post.locales.map((lng) => ({
       url: `${baseUrl}/${lng}/blog/${post.slug}`,
+      images: imagesByKey.get(`${lng}:${post.slug}`),
       lastModified: post.updated_at ? new Date(post.updated_at) : new Date(),
       changeFrequency: 'weekly' as const,
       priority: 0.7,

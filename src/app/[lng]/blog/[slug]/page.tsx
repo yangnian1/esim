@@ -13,6 +13,12 @@ import { getBlogDetailT } from './translations'
 // 草稿预览因此被拆到了独立路由 ./preview/。
 export const revalidate = 3600
 
+/** 取正文里第一张 <Figure /> 的 src，用作缺少头图时的代表图 */
+function firstBodyImage(body: string): string | null {
+  const m = /<Figure\b[^>]*?src=["']([^"']+)["']/.exec(body ?? '')
+  return m?.[1]?.startsWith('http') ? m[1] : null
+}
+
 interface BlogDetailProps {
   params: Promise<{
     lng: string
@@ -105,7 +111,12 @@ export async function generateMetadata({ params }: BlogDetailProps): Promise<Met
       description,
       url: canonical,
       publishedTime: post.published_at || undefined,
-      images: post.featured_image ? [post.featured_image] : undefined,
+      // Google 建议为落地页指定一张"代表性"图片。没有头图时退回正文第一张 ——
+      // 否则分享卡片和图片搜索都拿不到任何图。
+      images: (() => {
+        const primary = post.featured_image || firstBodyImage(post.body)
+        return primary ? [primary] : undefined
+      })(),
     },
   }
 }

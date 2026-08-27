@@ -587,3 +587,67 @@ export async function getPublishedPostLocales(): Promise<{
     return { data: [], error: handleSupabaseError(error) }
   }
 }
+
+/**
+ * 已发布文章里出现的图片，供 sitemap 的 <image:> 扩展用。
+ *
+ * Google 明确说图片站点地图能帮它发现「可能遗漏的图片」，
+ * 而对内容站来说图片搜索是一条独立的流量来源。
+ *
+ * 图片来自两处：文章头图 featured_image，以及正文里的 <Figure src="…" />。
+ * 只取当前语种真实有内容的文章 —— 和 sitemap 其余部分保持一致。
+ */
+export async function getPublishedPostImages(): Promise<{
+  data: { slug: string; locale: string; images: { url: string; caption: string }[] }[]
+  error: string | null
+}> {
+  try {
+    const nowIso = new Date().toISOString()
+    const { data, error } = await supabase
+      .from('blog_posts')
+      .select('slug, featured_image, published_content')
+      .eq('status', 'published')
+      .not('published_at', 'is', null)
+      .lte('published_at', nowIso)
+
+    if (error) return { data: [], error: handleSupabaseError(error) }
+
+    const rows = (data ?? []) as unknown as {
+      slug: string
+      featured_image: string | null
+      published_content: Record<string, string> | null
+    }[]
+
+    const out: { slug: string; locale: string; images: { url: string; caption: string }[] }[] = []
+
+    for (const row of rows) {
+      const slug = row.slug.replace(/^\/+/, '')
+      if (!slug) continue
+
+      for (const [locale, body] of Object.entries(row.published_content ?? {})) {
+        if (!languages.includes(locale) || !String(body ?? '').trim()) continue
+
+        const images: { url: string; caption: string }[] = []
+        if (row.featured_image?.startsWith('http')) {
+          images.push({ url: row.featured_image, caption: '' })
+        }
+
+        // <Figure src="…" alt="…" /> —— alt 拿来当 <image:caption>
+        const figureRe = /<Figure\b[^>]*?src=["']([^"']+)["'][^>]*?>/g
+        let m: RegExpExecArray | null
+        while ((m = figureRe.exec(String(body))) !== null) {
+          const url = m[1]
+          if (!url?.startsWith('http')) continue
+          const alt = /alt=["']([^"']*)["']/.exec(m[0])?.[1] ?? ''
+          if (!images.some((img) => img.url === url)) images.push({ url, caption: alt })
+        }
+
+        if (images.length > 0) out.push({ slug, locale, images })
+      }
+    }
+
+    return { data: out, error: null }
+  } catch (error) {
+    return { data: [], error: handleSupabaseError(error) }
+  }
+}
