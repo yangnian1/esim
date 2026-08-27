@@ -1,4 +1,5 @@
 import Image from 'next/image'
+import { ImageLightbox } from '@/components/ImageLightbox'
 
 interface FigureProps {
   src: string
@@ -45,21 +46,19 @@ export function Figure({ src, alt, caption, width, height }: FigureProps) {
   return (
     <figure className="my-8 flex flex-col items-center">
       {/*
-        点击打开原图。示意图和截图在手机上会被缩到很小，
-        必须给读者一个看清楚的出口。用普通链接而不是 JS 灯箱：
-        零依赖、不影响静态化，长按保存、新标签页打开这些系统行为也都还在。
+        点击在当前页打开全屏查看。示意图和截图在手机上会被缩到很小，
+        必须给读者一个看清楚的出口——而新开标签页的体验并不好。
+        ImageLightbox 内部仍然是真正的 <a href>，没有 JS 时退化成打开原图。
       */}
-      <a
-        href={src}
-        target="_blank"
-        rel="noopener noreferrer"
-        aria-label={`${alt} —— 点击查看原图`}
-        className="group relative block w-full"
-        style={{ maxWidth: `${width}px` }}
+      <ImageLightbox
+        src={src}
+        alt={alt}
+        caption={caption}
+        className="group relative mx-auto block w-full cursor-zoom-in"
       >
         <div
           className="relative w-full rounded-lg overflow-hidden bg-gray-100"
-          style={{ aspectRatio: aspectRatio.toString() }}
+          style={{ maxWidth: `${width}px`, aspectRatio: aspectRatio.toString() }}
         >
           {useNextImage ? (
             <Image
@@ -87,7 +86,7 @@ export function Figure({ src, alt, caption, width, height }: FigureProps) {
         <span className="pointer-events-none absolute bottom-2 right-2 rounded bg-black/55 px-2 py-1 text-xs text-white opacity-80 transition-opacity group-hover:opacity-100 md:opacity-0 md:group-hover:opacity-100">
           Zum Vergrößern tippen
         </span>
-      </a>
+      </ImageLightbox>
       {caption && (
         <figcaption className="text-sm text-gray-500 mt-3 text-center italic max-w-2xl">
           {caption}
