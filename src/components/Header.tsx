@@ -105,6 +105,10 @@ export function Header({ lng }: HeaderProps) {
   }
 
   // 更新语言链接，包含国旗和名称
+  // 只剩一个语种时不渲染切换器 —— 一个只能选当前项的下拉框是噪音。
+  // 把语种加回 i18n/settings.ts 的 languages，这里会自动恢复。
+  const showLanguageSwitcher = languages.length > 1
+
   const languageLinks = languages.map((l) => ({
     href: getRedirectedPath(l),
     code: l,
@@ -155,6 +159,7 @@ export function Header({ lng }: HeaderProps) {
             {/* 用户菜单 */}
 
             {/* 语言切换 - 客户端交互版本 */}
+            {showLanguageSwitcher && (
             <div className="relative">
               <button
                 onClick={() => setIsLanguageDropdownOpen(!isLanguageDropdownOpen)}
@@ -203,6 +208,7 @@ export function Header({ lng }: HeaderProps) {
                 </div>
               )}
             </div>
+            )}
           </nav>
           
           {/* 移动端导航 */}
@@ -228,8 +234,8 @@ export function Header({ lng }: HeaderProps) {
                     {link.label}
                   </Link>
                 ))}
-                <hr className="my-1 border-gray-200" />
-                {languageLinks.map((lang) => (
+                {showLanguageSwitcher && <hr className="my-1 border-gray-200" />}
+                {showLanguageSwitcher && languageLinks.map((lang) => (
                   <Link 
                     key={lang.code} 
                     href={lang.href} 

@@ -19,9 +19,12 @@ import { GoogleAnalytics } from "@/components/GoogleAnalytics";
 //   subsets: ["latin"],
 // });
 
+// 这是没有自己 metadata 的页面的兜底。原来写的是
+// "Buy eSIMs ... for over 200 countries" —— 两处都不实：本站不卖卡（是联盟
+// 推荐站），库里也只有土耳其的 14 个产品，谈不上 200 个国家。
 export const metadata: Metadata = {
-  title: "hello esims - Global Travel eSIM Solutions",
-  description: "Buy eSIMs for your travels worldwide. Stay connected with affordable data plans for over 200 countries.",
+  title: "hello esims – eSIM für die Türkei vergleichen",
+  description: "Unabhängiger Vergleich von Reise-eSIMs für die Türkei: Datenvolumen, Laufzeit und Preis im Überblick, dazu Anleitungen zur Einrichtung.",
   icons: {
     icon: '/favicon.ico',
     apple: '/icon.png',

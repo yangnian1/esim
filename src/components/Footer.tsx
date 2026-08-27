@@ -17,6 +17,8 @@ export const Footer = ({ lng }: { lng: string }) => {
   return (
     <footer className="w-full bg-gray-50 border-t mt-auto">
       <div className="container mx-auto py-8 px-4 sm:px-6 lg:px-8 text-center">
+        {/* 只剩一个语种时整行不渲染 —— 「Language: DE」是没有作用的界面 */}
+        {languages.length > 1 && (
         <div className="flex justify-center items-center">
           <span className="text-gray-600">Language:</span>
           {languages.map((l, index) => (
@@ -31,8 +33,9 @@ export const Footer = ({ lng }: { lng: string }) => {
             </span>
           ))}
         </div>
+        )}
         <p className="text-gray-500 text-sm mt-4">
-          © {new Date().getFullYear()} eSIM Store. All rights reserved.
+          © {new Date().getFullYear()} hello esims. All rights reserved.
         </p>
       </div>
     </footer>
