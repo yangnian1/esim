@@ -34,12 +34,12 @@ export async function BlogArticle({ post, lng, tocTitle, faqTitle }: BlogArticle
   const headings = extractHeadings(contentWithoutFaq)
 
   // 正文里出现 <TurkeyPlansWidget /> 才去查产品，避免每篇文章都白打一次数据库。
-  // 同时兼容历史写法 {{TurkeyPlansWidget}}（那种写法渲染不出组件，见 MdxRenderer 的注释，
-  // 但内容迁移完之前先让检测认它，免得漏加载）。
+  //
+  // 这里曾经还兼容历史写法 {{...}}，2026-08-28 去掉了：那种写法在 MDX 里
+  // 本来就渲染不出组件（见 MdxRenderer 的注释），认它只会白查一次产品表。
+  // 库里已无文章使用，导入校验器（admin/lib/article-import.ts）也会直接拒绝。
   const shouldLoadTurkeyPlans =
-    resolvedTemplate === 'pillar' &&
-    (markdownSource.includes('<TurkeyPlansWidget') ||
-      markdownSource.includes('{{TurkeyPlansWidget}}'))
+    resolvedTemplate === 'pillar' && markdownSource.includes('<TurkeyPlansWidget')
   const turkeyPlansResult = shouldLoadTurkeyPlans ? await getTurkeyPlans(lng, 6) : null
 
   // Article 结构化数据。Google 的图片文档明确写着「必须提供图片属性字段
