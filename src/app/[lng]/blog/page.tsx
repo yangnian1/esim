@@ -3,6 +3,7 @@ import { buildPageMetadata } from '@/lib/seo'
 import Link from 'next/link'
 import { getPublishedPosts } from '@/lib/blog'
 import { Suspense } from 'react'
+import { firstBodyImage } from '@/lib/markdown'
 import { BlogCardImage } from '@/components/BlogCardImage'
 import { languages } from '@/i18n/settings'
 
@@ -105,7 +106,13 @@ async function BlogPostsList({ lng }: { lng: string }) {
           className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow flex flex-col block"
         >
           {/* 文章头图 */}
-          <BlogCardImage src={post.featured_image} alt={post.title} />
+          {/*
+            没设头图时退回正文第一张图 —— 和详情页的 og:image、
+            Article.image 用同一条规则（lib/markdown.ts 的 firstBodyImage）。
+            以前只有那两处有兜底，列表页没有，结果同一篇文章
+            分享出去有缩略图、列表里却是一块紫色渐变。
+          */}
+          <BlogCardImage src={post.featured_image || firstBodyImage(post.body)} alt={post.title} />
 
           <div className="p-6 flex flex-col flex-grow">
             <h2 className="text-xl font-semibold text-gray-900 mb-3 line-clamp-2 hover:text-purple-600 transition-colors">

@@ -1,5 +1,5 @@
 import { getTurkeyPlans } from '@/lib/blog'
-import { extractFaqSection, extractHeadings } from '@/lib/markdown'
+import { extractFaqSection, extractHeadings, firstBodyImage } from '@/lib/markdown'
 import { BlogLayout } from '@/components/blog/BlogLayout'
 import { PillarLayout } from '@/components/blog/PillarLayout'
 import { TurkeyPlansWidget } from '@/components/blog/TurkeyPlansWidget'
@@ -45,10 +45,7 @@ export async function BlogArticle({ post, lng, tocTitle, faqTitle }: BlogArticle
   // Article 结构化数据。Google 的图片文档明确写着「必须提供图片属性字段
   // 才能显示标记」—— image 是拿到富媒体结果的前提，不是可选项。
   // 图片优先用头图，没有就取正文第一张。
-  const primaryImage =
-    post.featured_image ||
-    /<Figure\b[^>]*?src=["']([^"']+)["']/.exec(markdownSource)?.[1] ||
-    null
+  const primaryImage = post.featured_image || firstBodyImage(markdownSource)
 
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, '')
   const articleJsonLd = JSON.stringify({

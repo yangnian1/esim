@@ -2,6 +2,7 @@ import { notFound } from 'next/navigation'
 import type { Metadata } from 'next'
 import { getPostBySlug } from '@/lib/blog'
 import { getPublishedPostLocales } from '@/lib/supabase-services'
+import { firstBodyImage } from '@/lib/markdown'
 import { languages, fallbackLng } from '@/i18n/settings'
 import { BlogArticle } from '@/components/blog/BlogArticle'
 import { getBlogDetailT } from './translations'
@@ -14,11 +15,6 @@ import { getBlogDetailT } from './translations'
 export const revalidate = 3600
 
 /** 取正文里第一张 <Figure /> 的 src，用作缺少头图时的代表图 */
-function firstBodyImage(body: string): string | null {
-  const m = /<Figure\b[^>]*?src=["']([^"']+)["']/.exec(body ?? '')
-  return m?.[1]?.startsWith('http') ? m[1] : null
-}
-
 interface BlogDetailProps {
   params: Promise<{
     lng: string

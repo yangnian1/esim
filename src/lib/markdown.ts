@@ -136,3 +136,18 @@ export function extractFaqSection(markdown: string): { content: string; faqs: Fa
 
   return { content: contentLines.join('\n').trim(), faqs }
 }
+
+/**
+ * 取正文里第一张 <Figure> 的 src，作为头图的兜底。
+ *
+ * 三处共用同一个实现，规则必须一致：博客列表的卡片、详情页的 og:image、
+ * Article 结构化数据的 image。以前列表页没有兜底、另外两处各写各的，
+ * 其中一处还漏了 http 检查，导致 Article.image 可能拿到相对路径。
+ *
+ * 只认 http(s) 开头的绝对地址：结构化数据和图片站点地图都要求绝对 URL，
+ * 相对路径进去只会变成抓不到的链接。
+ */
+export function firstBodyImage(body: string | null | undefined): string | null {
+  const m = /<Figure\b[^>]*?src=["']([^"']+)["']/.exec(body ?? '')
+  return m?.[1]?.startsWith('http') ? m[1] : null
+}
