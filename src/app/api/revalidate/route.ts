@@ -63,6 +63,12 @@ export async function POST(request: NextRequest) {
   }
 
   let paths = 0
+
+  // sitemap 也要刷 —— 新文章的 URL 在这里，不刷的话搜索引擎要等到
+  // 下次部署才看得到它。robots.txt 不用刷，它不读数据库。
+  revalidatePath('/sitemap.xml')
+  paths += 1
+
   for (const lng of languages) {
     revalidatePath(`/${lng}/blog`)
     paths += 1

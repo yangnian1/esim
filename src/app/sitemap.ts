@@ -12,6 +12,14 @@ import {
 //   照默认值取会导致只有最新几条进 sitemap）
 const SITEMAP_PAGE_SIZE = 1000
 
+// sitemap 必须能在不重新部署的情况下更新。
+// 没有这一行时它是构建时静态生成的（next build 输出里的 ○），
+// 后台发一篇新文章、调完 /api/revalidate，文章页上线了，
+// sitemap 里却还是旧的一份 —— 要等下次部署才跟上。
+//
+// 一小时是兜底；发布后调 /api/revalidate 会立刻刷新它（那边显式刷了这个路径）。
+export const revalidate = 3600
+
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const rawBaseUrl = process.env.NEXT_PUBLIC_SITE_URL
   if (!rawBaseUrl) {
